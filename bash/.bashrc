@@ -63,7 +63,7 @@ ta() {
 }
 
 
-eval "$(/home/lychang/.local/bin/mise activate bash)"
+[ -x "$HOME/.local/bin/mise" ] && eval "$("$HOME/.local/bin/mise" activate bash)"
 # be ware the package installed by mise, need put after here
 
 # ble.sh fzf integration (must be after mise activate so fzf is in PATH)
