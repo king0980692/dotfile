@@ -113,8 +113,6 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 # opencode
 export PATH=/home/lychang/.opencode/bin:$PATH
 
-source ~/.config/leon_scripts/fzf_walk.sh
-
 function open() {
   if [[ "$1" == "" ]]; then
     Explorer.exe .
