@@ -28,7 +28,7 @@ TRANSFORMER='
 
   if ! [[ -r "$TEMP" ]] || [[ $rg_pat != $(cat "$TEMP") ]]; then
     echo "$rg_pat" > "$TEMP"
-    printf "reload:sleep 0.1; rg --column --line-number --no-heading --color=always --smart-case -- %q || true" "$rg_pat"
+    printf "reload:sleep 0.1; rg --column --line-number --no-heading --color=always --smart-case -- %q || true\n" "$rg_pat"
   fi
   echo "+search:$fzf_pat"
 '
