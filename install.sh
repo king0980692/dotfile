@@ -9,14 +9,6 @@ info()  { printf '\033[1;34m[INFO]\033[0m %s\n' "$*"; }
 warn()  { printf '\033[1;33m[WARN]\033[0m %s\n' "$*"; }
 error() { printf '\033[1;31m[ERROR]\033[0m %s\n' "$*"; exit 1; }
 
-# ── 0. Ensure SSH access to GitHub ─────────────────────────────────
-if ! ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
-    warn "Cannot authenticate with GitHub via SSH."
-    warn "Make sure your SSH key is set up: https://docs.github.com/en/authentication/connecting-to-github-with-ssh"
-    read -rp "  Continue anyway? [y/N] " confirm
-    [[ "$confirm" =~ ^[Yy]$ ]] || exit 1
-fi
-
 # ── 1. Clone dotfiles ──────────────────────────────────────────────
 if [ -d "$XDG_CONFIG_HOME/.git" ]; then
     info "Dotfile repo already cloned, pulling latest..."
@@ -28,13 +20,11 @@ else
 
     # Merge into existing ~/.config without overwriting unrelated files
     mkdir -p "$XDG_CONFIG_HOME"
-    # Copy .git repo metadata
     cp -r "$tmpdir/.git" "$XDG_CONFIG_HOME/.git"
-    # Only checkout tracked dotfiles (won't touch unrelated configs)
-    git -C "$XDG_CONFIG_HOME" checkout -- .gitignore
-    git -C "$XDG_CONFIG_HOME" ls-files | while IFS= read -r f; do
+    # Copy only tracked dotfiles (preserving symlinks with -a)
+    git -C "$tmpdir" ls-files | while IFS= read -r f; do
         mkdir -p "$XDG_CONFIG_HOME/$(dirname "$f")"
-        cp "$tmpdir/$f" "$XDG_CONFIG_HOME/$f"
+        cp -a "$tmpdir/$f" "$XDG_CONFIG_HOME/$f"
     done
     rm -rf "$tmpdir"
     info "Dotfiles merged into existing $XDG_CONFIG_HOME (other configs untouched)"
@@ -53,13 +43,14 @@ export PATH="$HOME/.local/bin:$PATH"
 info "Installing tools from mise config..."
 mise install --yes
 
-# ── 4. Install ble.sh ──────────────────────────────────────────────
+# ── 4. Install ble.sh (prebuilt nightly, no make required) ────────
 if [ ! -d "$BLESH_DIR" ]; then
     info "Installing ble.sh..."
-    # Use mise-installed git/make
     tmpdir=$(mktemp -d)
-    git clone --recursive --depth 1 --shallow-submodules https://github.com/akinomyoga/ble.sh.git "$tmpdir/ble.sh"
-    make -C "$tmpdir/ble.sh" install PREFIX="$HOME/.local"
+    curl -L https://github.com/akinomyoga/ble.sh/releases/download/nightly/ble-nightly.tar.xz \
+        | tar xJf - -C "$tmpdir"
+    mkdir -p "$HOME/.local/share/blesh"
+    cp -r "$tmpdir"/ble-nightly/* "$HOME/.local/share/blesh/"
     rm -rf "$tmpdir"
 else
     info "ble.sh already installed"
@@ -69,7 +60,7 @@ fi
 info "Symlinking shell configs..."
 ln -sfn "$XDG_CONFIG_HOME/bash/.bashrc" "$HOME/.bashrc"
 
-# Create .blerc if not present (points to config in repo)
+# Create .blerc if not present
 if [ ! -f "$HOME/.blerc" ]; then
     cat > "$HOME/.blerc" << 'BLERC'
 

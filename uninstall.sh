@@ -52,7 +52,7 @@ fi
 
 # ── 5. Remove dotfile configs ─────────────────────────────────────
 info "Removing dotfile config directories..."
-MANAGED_DIRS=(bash nvim mise tmux leon_scripts lazygit yazi broot git)
+MANAGED_DIRS=(bash nvim mise tmux leon_scripts lazygit yazi git)
 for dir in "${MANAGED_DIRS[@]}"; do
     rm -rf "${XDG_CONFIG_HOME:?}/$dir"
 done
@@ -71,9 +71,6 @@ rm -rf "$HOME/.cache/mise"
 rm -rf "$HOME/.local/share/atuin"
 rm -rf "$HOME/.local/share/zoxide"
 rm -rf "$HOME/.cache/starship"
-rm -rf "$HOME/.local/share/broot"
-rm -rf "$HOME/.cache/broot"
-
 # Clean bun
 rm -rf "$HOME/.bun"
 

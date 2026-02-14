@@ -34,8 +34,5 @@ tmux/plugins/
 # Ignore yazi plugin repos
 yazi/plugins/
 
-!broot/
-!broot/**
-
 !git/
 !git/**

@@ -14,7 +14,6 @@ Personal dotfile configs for bash + ble.sh + nvim + mise + tmux and more.
 | `starship.toml` | Starship prompt config |
 | `lazygit/` | Lazygit config |
 | `yazi/` | Yazi file manager config |
-| `broot/` | Broot file manager config |
 | `git/` | Git global ignore |
 | `.gitconfig` | Git config (delta pager, zdiff3 merge) |
 
@@ -23,7 +22,7 @@ Personal dotfile configs for bash + ble.sh + nvim + mise + tmux and more.
 > All installed automatically via `mise/config.toml`
 
 neovim, tmux, fzf, starship, zoxide, atuin, ripgrep, fd, bat, delta,
-lazygit, yazi, broot, btop, bottom, dust, eza, difftastic, fx, jq, gum,
+lazygit, yazi, btop, bottom, dust, eza, difftastic, fx, jq, gum,
 croc, gitui, cmake, node, bun, pnpm, rust, uv, claude-code, opencode,
 aichat, usage, fastfetch, crush
 
