@@ -1,0 +1,180 @@
+return {}
+-- Auto-completion / Snippets
+-- return {
+--   -- https://github.com/hrsh7th/nvim-cmp
+--   'hrsh7th/nvim-cmp',
+--   event = 'InsertEnter',
+--   dependencies = {
+--     -- Snippet engine & associated nvim-cmp source
+--     -- https://github.com/L3MON4D3/LuaSnip
+--     'L3MON4D3/LuaSnip',
+--     -- https://github.com/saadparwaiz1/cmp_luasnip
+--     'saadparwaiz1/cmp_luasnip',
+--
+--     -- LSP completion capabilities
+--     -- https://github.com/hrsh7th/cmp-nvim-lsp
+--     'hrsh7th/cmp-nvim-lsp',
+--
+--     -- Additional user-friendly snippets
+--     -- https://github.com/rafamadriz/friendly-snippets
+--     'rafamadriz/friendly-snippets',
+--     -- https://github.com/hrsh7th/cmp-buffer
+--     'hrsh7th/cmp-buffer',
+--     -- https://github.com/hrsh7th/cmp-path
+--     'hrsh7th/cmp-path',
+--     -- https://github.com/hrsh7th/cmp-cmdline
+--     'hrsh7th/cmp-cmdline',
+--   },
+--   config = function()
+--     local cmp = require('cmp')
+--     local luasnip = require('luasnip')
+--     require('luasnip.loaders.from_vscode').lazy_load()
+--     luasnip.config.setup({})
+--
+--     cmp.setup({
+--       snippet = {
+--         expand = function(args)
+--           luasnip.lsp_expand(args.body)
+--         end,
+--       },
+--       -- completion = {
+--       --   completeopt = 'menu,menuone,noinsert',
+--       -- },
+--       completion = {
+--         -- Avoids inserting text until it is explicitly selected from
+--         -- the completion menu.
+--         completeopt = "menu,menuone,noinsert,noselect"
+--       },
+--       experimental = {
+--         ghost_text = false,
+--         native_menu = false,
+--       },
+--       formatting = {
+--         fields = {"abbr", "kind", "menu",},
+--         format = function(entry, item)
+--           -- Define menu shorthand for different completion sources.
+--
+--           local menu_icon = {
+--             -- luasnip  = "LSN",
+--             nvim_lsp = "LSP",
+--             nvim_lua = "LUA",
+--             buffer = "BUF",
+--           }
+--
+--           -- Set the menu "icon" to the shorthand for each completion source.
+--           item.menu = menu_icon[entry.source.name]
+--
+--           -- Set the fixed width of the completion menu to 60 characters in length.
+--           -- fixed_width = 20
+--
+--           -- Set 'fixed_width' to false if not provided.
+--           -- fixed_width = fixed_width or false
+--
+--           -- Get the completion entry text shown in the completion window.
+--           local content = item.abbr
+--
+--           -- Set the fixed completion window width.
+--           -- if fixed_width then
+--           --     vim.o.pumwidth = fixed_width
+--           -- end
+--
+--           -- Get the width of the current window.
+--           local win_width = vim.api.nvim_win_get_width(0)
+--
+--           -- Set the max content width based on either: 'fixed_width' or a percentage of the window width, in this case 20%. We subtract 10 from 'fixed_width' to leave room for the 'kind' and other fields.
+--           -- local max_content_width = fixed_width and fixed_width - 10 or math.floor(win_width * 0.2)
+--           local max_content_width = math.floor(win_width * 0.25)
+--
+--           -- Truncate the completion entry text if it's longer than the max content width. We subtract 3 from the max content width to account for the "..." that will be appended to it.
+--           if #content > max_content_width then
+--             item.abbr = vim.fn.strcharpart(content, 0, max_content_width - 3) .. "..."
+--           else
+--             item.abbr = content .. (" "):rep(max_content_width - #content)
+--           end
+--
+--           return item
+--         end,
+--       },
+--       sorting = {
+--         comparators = {
+--           cmp.config.compare.offset,
+--           cmp.config.compare.exact,
+--           cmp.config.compare.score,
+--           -- This has the effect of sorting completion items that
+--           -- start with an underscore lower than those without. The
+--           -- more leading underscores, the lower it will sort.
+--           -- https://github.com/pysan3/dotfiles/blob/9d3ca30baecefaa2a6453d8d6d448d62b5614ff2/nvim/lua/plugins/70-nvim-cmp.lua#L39-L49
+--           function(entry1, entry2)
+--             local _, entry1_under = entry1.completion_item.label:find "^_+"
+--             local _, entry2_under = entry2.completion_item.label:find "^_+"
+--             entry1_under = entry1_under or 0
+--             entry2_under = entry2_under or 0
+--             if entry1_under > entry2_under then
+--               return false
+--             elseif entry1_under < entry2_under then
+--               return true
+--             end
+--           end,
+--           cmp.config.compare.kind,
+--           cmp.config.compare.sort_text,
+--           cmp.config.compare.length,
+--           cmp.config.compare.order,
+--         },
+--       },
+--       performance = {
+--         debounce = 1,
+--         throttle = 1,
+--         fetching_timeout = 1,
+--       },
+--
+--       mapping = cmp.mapping.preset.insert {
+--         ['<C-j>'] = cmp.mapping.select_next_item(), -- next suggestion
+--         ['<C-k>'] = cmp.mapping.select_prev_item(), -- previous suggestion
+--         ['<C-b>'] = cmp.mapping.scroll_docs(-4), -- scroll backward
+--         ['<C-f>'] = cmp.mapping.scroll_docs(4), -- scroll forward
+--         ['<C-Space>'] = cmp.mapping.complete {}, -- show completion suggestions
+--         ['<CR>'] = cmp.mapping.confirm {
+--           behavior = cmp.ConfirmBehavior.Replace,
+--           select = true,
+--         },
+--         -- Tab through suggestions or when a snippet is active, tab to the next argument
+--         ['<Tab>'] = cmp.mapping(function(fallback)
+--           if cmp.visible() then
+--             cmp.select_next_item()
+--           elseif luasnip.expand_or_locally_jumpable() then
+--             luasnip.expand_or_jump()
+--           else
+--             fallback()
+--           end
+--         end, { 'i', 's' }),
+--         -- Tab backwards through suggestions or when a snippet is active, tab to the next argument
+--         ['<S-Tab>'] = cmp.mapping(function(fallback)
+--           if cmp.visible() then
+--             cmp.select_prev_item()
+--           elseif luasnip.locally_jumpable(-1) then
+--             luasnip.jump(-1)
+--           else
+--             fallback()
+--           end
+--         end, { 'i', 's' }),
+--       },
+--       sources = cmp.config.sources({
+--         { name = "nvim_lsp" }, -- lsp
+--         { name = "luasnip" }, -- snippets
+--         { name = "buffer" }, -- text within current buffer
+--         { name = "path" }, -- file system paths
+--       }),
+--       window = {
+--         -- Add borders to completions popups
+--         completion = cmp.config.window.bordered({
+--           scrollbar = false,
+--           border = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" } ,
+--         }),
+--         documentation = cmp.config.window.bordered({
+--           border = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" },
+--           winhighlight = 'NormalFloat:NormalFloat,FloatBorder:FloatBorder',
+--         }),
+--       },
+--     })
+--   end,
+-- }

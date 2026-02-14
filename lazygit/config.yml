@@ -1,0 +1,54 @@
+# https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md
+promptToReturnFromSubprocess: false
+gui:
+  sidePanelWidth: 0.25 #左侧面板宽度 (0 - 1.0)
+  showIcons: true
+  screenMode: half
+  border: single
+  expandedSidePanelWeight: 3
+  expandFocusedSidePanel: true
+  showPanelJumps: false # 1,2,3,4 on border
+  tabWidth: 2
+  # language: 'zh-TW'
+  timeFormat: '2006-01-02'
+  showRootItemInFileTree: true
+  showNumstatInFilesView: true
+  showCommandLog: true # right-bottom log
+  statusPanelView: allBranchesLog
+git:
+  pagers:
+    - colorArg: always
+      pager: delta --dark --paging=never --line-numbers
+keybinding:
+  universal:
+    return: 'q'
+    quit: '<disabled>'
+    prevItem-alt: 'k'
+    nextItem-alt: 'j'
+    scrollUpMain-alt1: '<c-k>'
+    scrollDownMain-alt1: '<c-j>'
+    scrollUpMain-alt2: '<disabled>'
+    scrollDownMain-alt2: '<disabled>'
+    prevPage: '<c-u>'
+    nextPage: '<c-d>'
+    gotoTop: 'g'
+    gotoBottom: 'G'
+    prevBlock-alt: 'K'
+    nextBlock-alt: 'J'
+    prevBlock-alt2: '<disabled>'
+    nextBlock-alt2: '<disabled>'
+    nextScreenMode: '}'
+    prevScreenMode: '{'
+    increaseContextInDiffView: '<disabled>'
+    decreaseContextInDiffView: '<disabled>'
+    goInto: '<disabled>'
+    togglePanel: '+'
+    optionMenu: '<f1>'
+  files:
+    ignoreFile: 'I'
+  commits:
+    moveDownCommit: '<c-e>'
+    moveUpCommit: '<c-u>'
+  branches:
+    viewGitFlowOptions: 'I'
+    setUpstream: 'U'

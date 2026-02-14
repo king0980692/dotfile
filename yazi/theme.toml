@@ -1,0 +1,11 @@
+[status]
+left = ["mode", "size", "created", "modified"]
+right = ["permissions", "owner", "group"]
+
+# [tabs]
+# sep_inner = { open = "[", close = "]" }
+# # sep_inner = { open = "", close = "" }
+# sep_outer = { open = "", close = "" }
+#
+# inactive = { fg = "#e4e4e4", bg = "black" }
+# active = { fg = "yellow", bg="black", bold=true }

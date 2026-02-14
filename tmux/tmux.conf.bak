@@ -1,0 +1,275 @@
+#
+# ████████╗███╗   ███╗██╗   ██╗██╗  ██╗
+# ╚══██╔══╝████╗ ████║██║   ██║╚██╗██╔╝
+#    ██║   ██╔████╔██║██║   ██║ ╚███╔╝
+#    ██║   ██║╚██╔╝██║██║   ██║ ██╔██╗
+#    ██║   ██║ ╚═╝ ██║╚██████╔╝██╔╝ ██╗
+#    ╚═╝   ╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═╝
+# Terminal multiplexer
+# https://github.com/tmux/tmux
+# cSpell:words christoomey joshmedeski lazygit brightblack nobold gitmux olimorris
+
+# reload config without killing server
+bind R source-file ~/.config/tmux/tmux.conf \; display-message "Config reloaded..."
+
+set -g mouse on
+
+
+# set -g mode-style "fg=default,bg=default,reverse"
+
+# set-option -g default-shell /usr/bin/zsh
+# set-option -sa terminal-features ',xterm:RGB'
+
+# Prefix key
+set-option -g prefix M-q
+set-option -g prefix2 M-\\
+#bind-key 'M-q' send-prefix
+
+
+set-option -g automatic-rename on
+set-option -g automatic-rename-format '#{b::pane_current_path}'
+
+set-window-option -g aggressive-resize
+
+bind '%' split-window -c '#{pane_current_path}' -h
+bind '"' split-window -c '#{pane_current_path}'
+bind-key -n M-\' split-window -c "#{pane_current_path}"
+bind-key -n M-5 split-window -h -c "#{pane_current_path}"
+# bind-key -n 'M-c' new-window      -c "#{pane_current_path}"
+bind-key -n 'M-z' resize-pane -Z
+bind-key  'M-`' resize-pane -Z
+bind-key -n 'M-d' detach-client
+
+bind-key -n M-,' next-window
+bind-key -n M-.' previous-window
+
+# Change Window
+bind-key C-Tab next-window
+bind-key C-S-Tab previous-window
+bind-key -n M-L next-window
+bind-key -n M-H previous-window
+bind-key -n M-'"' next-window
+
+
+bind '"' split-window -c "#{pane_current_path}"
+bind % split-window -h -c "#{pane_current_path}"
+bind c new-window      -c "#{pane_current_path}"
+
+
+# Run below to hide it manually
+#tmux if-shell "[ \"#{session_name}\" = \"popup\" ]" "echo Session is popup; set status off; set pane-border-status off" "echo Session is not popup"
+
+set-hook -g after-new-session 'if-shell "[ \"#{session_name}\" = \"popup\" ]" "set status off; set pane-border-status off"'
+
+set-hook -g session-close 'run-shell "if [ \"#{session_name}\" = \"popup\" ]; then tmux detach-client; tmux kill-session -t popup; fi"'
+
+set-hook -g session-created 'run-shell "~/.config/script/tmux_create_sess.sh"'
+
+
+
+bind-key -n -N 'Toggle popup window' M-p if-shell -F '#{==:#{session_name},popup}' {
+    detach-client
+} {
+    display-popup -d "#{pane_current_path}" -xC -yC -w 80% -h 75% -E 'tmux attach-session -t popup || tmux new-session -s popup'
+}
+
+
+bind-key -n C-d \
+    run-shell " \
+    if [ '#{session_name}' = 'popup' ] && [ $(tmux list-panes -t #{session_name} | wc -l) -eq 1 ]; then \
+        tmux detach-client; \
+        tmux kill-session -t popup; \
+    else \
+        if [ -n '#{pane_current_command}' ] && [ '#{pane_current_command}' != 'tmux' ]; then \
+            tmux send-keys C-d; \
+        else \
+            tmux kill-pane; \
+        fi; \
+    fi"
+
+
+
+# Pane navigation (vim-like)
+setw -g mode-keys vi
+bind -T copy-mode-vi v send -X begin-selection
+#bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "pbcopy"
+#bind P paste-buffer
+#bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "pbcopy"
+
+bind-key -T copy-mode-vi y send -X copy-selection-and-cancel
+bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel
+bind-key x kill-pane # skip "kill-pane 1? (y/n)" prompt
+bind-key \\ last-window
+
+
+bind h select-pane -L
+bind j select-pane -D
+bind k select-pane -U
+bind l select-pane -R
+
+# Pane resizing
+bind -r Left  resize-pane -L 2
+bind -r Down  resize-pane -D 2
+bind -r Up    resize-pane -U 2
+bind -r Right resize-pane -R 2
+
+bind -n M-Left resize-pane -L 1
+bind -n M-Right resize-pane -R 1
+bind -n M-Up resize-pane -U 1
+bind -n M-Down resize-pane -D 1
+
+bind-key -n 'M-n' split-window -h -c "#{pane_current_path}" \; select-layout main-vertical
+# bind-key -n 'M-x' confirm-before -p "Kill the pane ? (y/n)" "kill-pane \; select-layout main-vertical"
+
+
+
+bind -n M-g run-shell "if command -v nvidia-smi > /dev/null 2>&1; then \
+  tmux display-popup -w 80% -h 80% -E 'nvitop'; \
+else \
+  tmux display-popup -w 40% -h 10% -E 'echo No GPU Detect; sleep 1'; \
+fi"
+
+
+bind-key "s" run-shell "sesh connect \"$(
+  sesh list -t --icons | grep -v 'popup'  | FZF_DEFAULT_OPTS="--color=bg+:#1e1e2e,prompt:#8839ef,hl+:#d20f39" fzf-tmux -p 86%,70% \
+    --gap \
+    --border 'block' \
+    --reverse \
+    --no-input \
+    --cycle \
+    --bind 'j:down,k:up' \
+    --bind '/:show-input+unbind(j,k,t,x,q)+reload(sesh list --icons | grep -v \"popup\")+change-preview-window:right:60%' \
+    --bind 't:execute($HOME/.config/script/yazi_path.sh)+abort' \
+    --pointer="▶" \
+    --no-sort --prompt '⚡  ' --ansi \
+    --border-label-pos=5 \
+    --border-label ' [1;32;125m [ 󱦟  Tmux-Session ]  ' \
+    --preview-label '[3;36;125m( t:new session; x:kill session; /:search ) ' \
+    --bind='F2:toggle-preview' \
+    --bind 'ctrl-j:preview-down' \
+    --bind 'ctrl-k:preview-up' \
+    --bind 'ctrl-d:preview-page-down' \
+    --bind 'ctrl-u:preview-page-up' \
+    --bind 'tab:down,btab:up' \
+    --bind 'q:abort' \
+    --bind 'x:execute(tmux kill-session -t {2..})+change-prompt(⚡  )+reload(sesh list -t --icons | grep -v \'popup\')' \
+    --preview-window "right:80%" \
+    --preview-border "rounded" \
+    --preview-label-pos "-9" \
+    --list-border "rounded" \
+    --keep-right \
+    --ignore-case \
+    --preview 'sesh preview {}'
+)\""
+################################################################
+# up and down is the same, don't forget to change both of them #
+################################################################
+
+
+bind -n M-s run-shell "sesh connect \"$(
+  sesh list -t --icons | grep -v 'popup'  | FZF_DEFAULT_OPTS="--color=bg+:#1e1e2e,prompt:#8839ef,hl+:#d20f39" fzf-tmux -p 86%,70% \
+    --gap \
+    --border 'block' \
+    --reverse \
+    --no-input \
+    --cycle \
+    --bind 'j:down,k:up' \
+    --bind 't:execute(yazi)+abort' \
+    --bind '/:show-input+unbind(c,j,k,t,x,q)+reload(sesh list -d -H -z --icons | grep -v \"popup\")+change-preview-window:right:60%' \
+    --bind 'c:execute(~/.config/script/gh_repo_preview.sh)+abort' \
+    --pointer="▶" \
+    --no-sort --prompt '⚡  ' --ansi \
+    --border-label-pos=5 \
+    --border-label ' [1;32;125m [ 󱦟  Tmux-Session ]  ' \
+    --preview-label '[3;36;125m( t:new session; x:kill session; /:search ) ' \
+    --bind='F2:toggle-preview' \
+    --bind 'ctrl-j:preview-down' \
+    --bind 'ctrl-k:preview-up' \
+    --bind 'ctrl-d:preview-page-down' \
+    --bind 'ctrl-u:preview-page-up' \
+    --bind 'tab:down,btab:up' \
+    --bind 'q:abort' \
+    --bind 'x:execute(tmux kill-session -t {2..})+change-prompt(⚡  )+reload(sesh list -t --icons | grep -v \'popup\')' \
+    --preview-window "right:80%" \
+    --preview-border "rounded" \
+    --preview-label-pos "-9" \
+    --list-border "rounded" \
+    --keep-right \
+    --ignore-case \
+    --preview 'sesh preview {}'
+)\""
+
+# bind-key "s" display-popup -E -w 40% "sesh connect \"$(
+#  sesh list -i | gum filter --limit 1 --no-sort --fuzzy --placeholder 'Pick a sesh' --height 50 --prompt='⚡'
+# )\""
+
+
+bind -n M-b run-shell "if [ -d \"$(tmux display-message -p -F '#{pane_current_path}/.git')\" ]; then \
+  tmux display-popup -w 80% -h 80% -E 'lazygit -p \"$(tmux display-message -p -F #{pane_current_path})\"'; \
+else \
+  tmux display-popup -w 40% -h 10% -E 'echo No .git directory found; sleep 1'; \
+fi"
+
+
+bind -n M-y run-shell "if command -v btop > /dev/null 2>&1; then \
+  tmux display-popup -w 80% -h 80% -E 'btop'; \
+else \
+  tmux display-popup -w 40% -h 10% -E 'echo something wrong!; sleep 1'; \
+fi"
+
+
+
+
+#########################################
+#####    For tmux-vim-navigator     #####
+#########################################
+bind-key -n 'M-h' select-pane -L
+bind-key -n 'M-l' select-pane -R
+bind-key -n 'M-j' select-pane -D
+bind-key -n 'M-k' select-pane -U
+
+is_vim="ps -o state= -o comm= -t '#{pane_tty}' \
+    | grep -iqE '^[^TXZ ]+ +(\\S+\\/)?g?(view|n?vim?x?)(diff)?$'"
+
+bind-key -n 'M-h' if-shell "$is_vim" 'send-keys M-h'  'select-pane -L'
+bind-key -n 'M-j' if-shell "$is_vim" 'send-keys M-j'  'select-pane -D'
+bind-key -n 'M-k' if-shell "$is_vim" 'send-keys M-k'  'select-pane -U'
+bind-key -n 'M-l' if-shell "$is_vim" 'send-keys M-l'  'select-pane -R'
+
+# tmux_version='$(tmux -V | sed -En "s/^tmux ([0-9]+(.[0-9]+)?).*/\1/p")'
+# if-shell -b '[ "$(echo "$tmux_version < 3.0" | bc)" = 1 ]' \
+#     "bind-key -n 'C-\\' if-shell \"$is_vim\" 'send-keys C-\\'  'select-pane -l'"
+# if-shell -b '[ "$(echo "$tmux_version >= 3.0" | bc)" = 1 ]' \
+#     "bind-key -n 'C-\\' if-shell \"$is_vim\" 'send-keys C-\\\\'  'select-pane -l'"
+
+# bind-key -T copy-mode-vi 'C-h' select-pane -L
+# bind-key -T copy-mode-vi 'C-j' select-pane -D
+# bind-key -T copy-mode-vi 'C-k' select-pane -U
+# bind-key -T copy-mode-vi 'C-l' select-pane -R
+# bind-key -T copy-mode-vi 'C-\' select-pane -l
+#############################################
+#####    End For tmux-vim-navigator     #####
+#############################################
+set -g @plugin 'tmux-plugins/tpm'
+
+if "test ! -d ~/.tmux/plugins/tpm" \
+   "run 'git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm/ && ~/.config/tmux/plugins/tpm/bin/install_plugins'"
+
+
+
+run "$HOME/.config/tmux/plugins/tpm/tpm" # always at end of file
+
+
+# set -g pane-border-status top # off
+set -g pane-border-status bottom # off
+set -g pane-border-format " [#{pane_current_path}] <#{pane_current_command}> "
+
+# set -g status-position top
+set -g status-justify centre
+
+set -g allow-passthrough on
+
+set -as terminal-features 'contour:sixel'
+set -ga update-environment TERM
+set -ga update-environment TERM_PROGRAM
+

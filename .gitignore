@@ -1,0 +1,41 @@
+# Ignore everything by default
+*
+
+# Track these config directories
+!.gitignore
+!.gitconfig
+!starship.toml
+!install.sh
+!uninstall.sh
+!README.md
+
+!bash/
+!bash/**
+
+!nvim/
+!nvim/**
+
+!mise/
+!mise/**
+
+!tmux/
+!tmux/**
+# Ignore tmux plugin repos (will be auto-installed)
+tmux/plugins/
+
+!leon_scripts/
+!leon_scripts/**
+
+!lazygit/
+!lazygit/**
+
+!yazi/
+!yazi/**
+# Ignore yazi plugin repos
+yazi/plugins/
+
+!broot/
+!broot/**
+
+!git/
+!git/**

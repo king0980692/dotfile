@@ -1,0 +1,111 @@
+add_newline = false
+
+#format = """$env_var$username $directory$git_branch$git_status$python$mise
+#$character
+#"""
+
+# format = """$fill$git_branch$git_status$mise
+# \\$ 
+# """
+format = "> "
+right_format = "$git_branch$git_status"
+
+# right_format = "$git_branch$mise"
+
+
+[character]
+success_symbol = "╰─\\$"
+error_symbol = "╰─\\$"
+# ╭╴ ╰─
+
+[env_var]
+symbol = "╭╴"
+variable = 'SHELL'
+format = "$symbol"
+disabled = false
+
+
+#warp-Drop ugly default prompt characters
+#success_symbol = ""
+#error_symbol = ""
+
+# ---
+
+[os]
+format = '[$symbol](bold white)'   
+disabled = false
+
+[os.symbols]
+Windows = ''
+Arch = '󰣇'
+Ubuntu = ''
+Macos = '󰀵'
+Unknown = '󰠥'
+
+# ---y
+
+# Shows the username
+[username]
+style_user = 'yellow bold'
+style_root = 'black bold'
+format = '\[[$user](#2883ff)\]' # 2883ff
+disabled = false
+show_always = true
+
+# Shows the hostname
+[hostname]
+ssh_only = false
+format = '[$hostname](bold blue) '
+disabled = false
+
+# Shows current directory
+[directory]
+truncation_length = 0
+truncation_symbol = '…/'
+home_symbol = '~'
+# read_only_style = '197'
+read_only = '  '
+format = '<[$path]($style)[$read_only]($read_only_style)> '
+style = '#7ed1fb' # yellow bold
+
+
+# Shows current git branch
+[git_branch]
+#symbol = ' '
+symbol = ' '
+# symbol = ''
+format = '[$symbol$branch]($style)'
+# truncation_length = 0
+# truncation_symbol = '…/'
+style = '193'
+
+
+[git_status]
+format = "[ [$conflicted](yellow)[$untracked](218)[$modified$renamed](153)[$staged](green)[$deleted](red)($ahead_behind$stashed)]($style)"
+conflicted = "✘ $count "
+untracked = "? $count "
+modified = " $count "
+deleted = " $count "
+staged = " $count "
+renamed = " $count "
+stashed = " $count "
+
+
+# style = "cyan"
+
+# ---
+[python]
+symbol = '󰌠'
+python_binary = ['./venv/bin/python', 'python', 'python3', 'python2']
+format = '[${symbol} ${pyenv_prefix}(${version} )(\($virtualenv\) )]($style) '
+
+
+[nodejs]
+disabled = true
+
+[mise]
+symbol = '😎 '
+healthy_symbol = 'ready'
+unhealthy_symbol = 'not ready'
+format = 'on [$symbol$health]($style) '
+disabled = false

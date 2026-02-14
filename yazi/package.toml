@@ -1,0 +1,12 @@
+[plugin]
+deps = []
+
+[[flavor.deps]]
+use = "956MB/vscode-dark-modern"
+rev = "cd60541"
+hash = "f970182bee3543831796629ccf078553"
+
+[[flavor.deps]]
+use = "956MB/vscode-light-modern"
+rev = "c054b12"
+hash = "87265fb9bc07de76c0c9c916c84cc8b5"

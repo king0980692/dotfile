@@ -1,0 +1,137 @@
+{
+  "plugins": {
+    "barbar.nvim": {
+      "rev": "fb43699",
+      "src": "https://github.com/romgrk/barbar.nvim"
+    },
+    "blink.cmp": {
+      "rev": "bae4bae",
+      "src": "https://github.com/Saghen/blink.cmp",
+      "version": "'v1.6.0'"
+    },
+    "diffview.nvim": {
+      "rev": "4516612",
+      "src": "https://github.com/sindrets/diffview.nvim"
+    },
+    "fyler.nvim": {
+      "rev": "d6b855c",
+      "src": "https://github.com/A7Lavinraj/fyler.nvim"
+    },
+    "hlchunk.nvim": {
+      "rev": "9371351",
+      "src": "https://github.com/shellRaining/hlchunk.nvim"
+    },
+    "mason-lspconfig.nvim": {
+      "rev": "d627416",
+      "src": "https://github.com/mason-org/mason-lspconfig.nvim"
+    },
+    "mason-tool-installer.nvim": {
+      "rev": "517ef59",
+      "src": "https://github.com/WhoIsSethDaniel/mason-tool-installer.nvim"
+    },
+    "mason.nvim": {
+      "rev": "ad7146a",
+      "src": "https://github.com/mason-org/mason.nvim"
+    },
+    "mini.clue": {
+      "rev": "d846600",
+      "src": "https://github.com/echasnovski/mini.clue"
+    },
+    "mini.cursorword": {
+      "rev": "dda0f57",
+      "src": "https://github.com/echasnovski/mini.cursorword"
+    },
+    "mini.files": {
+      "rev": "dce9a4e",
+      "src": "https://github.com/echasnovski/mini.files"
+    },
+    "mini.icons": {
+      "rev": "ff2e4f1",
+      "src": "https://github.com/echasnovski/mini.icons"
+    },
+    "mini.move": {
+      "rev": "4d21420",
+      "src": "https://github.com/echasnovski/mini.move"
+    },
+    "mini.pick": {
+      "rev": "08a7220",
+      "src": "https://github.com/echasnovski/mini.pick"
+    },
+    "mini.surround": {
+      "rev": "88c5229",
+      "src": "https://github.com/echasnovski/mini.surround"
+    },
+    "neo-tree.nvim": {
+      "rev": "f3df514",
+      "src": "https://github.com/nvim-neo-tree/neo-tree.nvim"
+    },
+    "nui.nvim": {
+      "rev": "de74099",
+      "src": "https://github.com/MunifTanjim/nui.nvim"
+    },
+    "nvim-lspconfig": {
+      "rev": "2010fc6",
+      "src": "https://github.com/neovim/nvim-lspconfig"
+    },
+    "nvim-navic": {
+      "rev": "099b4c8",
+      "src": "https://github.com/SmiteshP/nvim-navic"
+    },
+    "nvim-scrollbar": {
+      "rev": "f8e87b9",
+      "src": "https://github.com/petertriho/nvim-scrollbar"
+    },
+    "nvim-scrollview": {
+      "rev": "316c37c",
+      "src": "https://github.com/dstein64/nvim-scrollview"
+    },
+    "nvim-tmux-navigation": {
+      "rev": "4898c98",
+      "src": "https://github.com/alexghergh/nvim-tmux-navigation"
+    },
+    "nvim-treesitter": {
+      "rev": "42fc28ba",
+      "src": "https://github.com/nvim-treesitter/nvim-treesitter"
+    },
+    "nvim-ufo": {
+      "rev": "72d54c3",
+      "src": "https://github.com/kevinhwang91/nvim-ufo"
+    },
+    "nvim-web-devicons": {
+      "rev": "8dcb311",
+      "src": "https://github.com/nvim-tree/nvim-web-devicons"
+    },
+    "oxocarbon.nvim": {
+      "rev": "9f85f60",
+      "src": "https://github.com/nyoom-engineering/oxocarbon.nvim"
+    },
+    "plenary.nvim": {
+      "rev": "b9fd522",
+      "src": "https://github.com/nvim-lua/plenary.nvim"
+    },
+    "promise-async": {
+      "rev": "119e896",
+      "src": "https://github.com/kevinhwang91/promise-async"
+    },
+    "toggleterm.nvim": {
+      "rev": "9a88eae",
+      "src": "https://github.com/akinsho/toggleterm.nvim"
+    },
+    "vague.nvim": {
+      "rev": "dba2805",
+      "src": "https://github.com/vague2k/vague.nvim"
+    },
+    "vim-slime": {
+      "rev": "67b24bf",
+      "src": "https://github.com/jpalardy/vim-slime"
+    },
+    "vim-tpipeline": {
+      "rev": "bc6dfc1",
+      "src": "https://github.com/vimpostor/vim-tpipeline.git"
+    },
+    "vscode-diff.nvim": {
+      "rev": "1cde497",
+      "src": "https://github.com/esmuellert/vscode-diff.nvim"
+    }
+  }
+}
