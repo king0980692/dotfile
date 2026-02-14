@@ -1,9 +1,5 @@
 
-# Defer fzf integration until ble-attach (mise hasn't activated yet at source time)
-blehook/eval-after-load keymap_vi '
-  _ble_contrib_fzf_base=$(which fzf 2>/dev/null)
-  ble-import -d integration/fzf-completion
-'
+# NOTE: fzf integration is loaded in .bashrc after mise activates
 
 bleopt info_display=bottom
 bleopt complete_auto_delay=100

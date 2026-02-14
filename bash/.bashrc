@@ -66,6 +66,11 @@ ta() {
 eval "$(/home/lychang/.local/bin/mise activate bash)"
 # be ware the package installed by mise, need put after here
 
+# ble.sh fzf integration (must be after mise activate so fzf is in PATH)
+if command -v fzf &>/dev/null; then
+    _ble_contrib_fzf_base=$(command -v fzf)
+    ble-import -d integration/fzf-completion
+fi
 
 if [ -n "$TMUX" ]; then
   command -v starship &>/dev/null && eval "$(starship init bash)"
