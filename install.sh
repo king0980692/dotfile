@@ -39,7 +39,19 @@ else
 fi
 export PATH="$HOME/.local/bin:$PATH"
 
-# ── 3. Install all tools via mise ──────────────────────────────────
+# ── 3. GitHub token for mise (avoids rate limiting) ────────────────
+if [ -z "${MISE_GITHUB_TOKEN:-${GITHUB_TOKEN:-}}" ]; then
+    warn "No GitHub token found. mise may hit rate limits."
+    warn "Create one at: https://github.com/settings/tokens (no scopes needed)"
+    read -rp "  Paste your GitHub token (or press Enter to skip): " gh_token
+    if [ -n "$gh_token" ]; then
+        export MISE_GITHUB_TOKEN="$gh_token"
+    fi
+else
+    export MISE_GITHUB_TOKEN="${MISE_GITHUB_TOKEN:-$GITHUB_TOKEN}"
+fi
+
+# ── 4. Install all tools via mise ──────────────────────────────────
 info "Installing tools from mise config..."
 mise install --yes || warn "Some tools failed to install (may be rate-limited). Run 'mise install' again later."
 
