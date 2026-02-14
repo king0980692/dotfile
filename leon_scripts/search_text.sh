@@ -66,7 +66,7 @@ fzf --ansi --disabled --query "$INITIAL_QUERY" \
 	  --walker-skip="*log*,.git,node_modules,target" \
     --color "hl:229:underline,hl+:229:underline:reverse" \
     --delimiter : \
-    --preview 'bat --style numbers --color=always {1} --highlight-line {2}' \
+    --preview '[[ -n {2} ]] && bat --style numbers --color=always {1} --highlight-line {2} || bat --style numbers --color=always {1}' \
     --preview-window "$PREVIEW_POS" \
 	  --reverse \
     --height=75% \
