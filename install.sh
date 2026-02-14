@@ -41,7 +41,7 @@ export PATH="$HOME/.local/bin:$PATH"
 
 # ── 3. Install all tools via mise ──────────────────────────────────
 info "Installing tools from mise config..."
-mise install --yes
+mise install --yes || warn "Some tools failed to install (may be rate-limited). Run 'mise install' again later."
 
 # ── 4. Install ble.sh (prebuilt nightly, no make required) ────────
 if [ ! -d "$BLESH_DIR" ]; then
