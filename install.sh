@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DOTFILE_REPO="git@github.com:king0980692/dotfile.git"
+DOTFILE_REPO="https://github.com/king0980692/dotfile.git"
 XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 BLESH_DIR="$HOME/.local/share/blesh"
 

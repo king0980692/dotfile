@@ -23,17 +23,23 @@ Personal dotfile configs for bash + ble.sh + nvim + mise + tmux and more.
 
 neovim, tmux, fzf, starship, zoxide, atuin, ripgrep, fd, bat, delta,
 lazygit, yazi, btop, bottom, dust, eza, difftastic, fx, jq, gum,
-croc, gitui, cmake, node, bun, pnpm, rust, uv, claude-code, opencode,
+croc, cmake, node, bun, pnpm, rust, uv, claude-code, opencode,
 aichat, usage, fastfetch, crush
 
 ## Quick Start
 
 ### Install on a new environment
 
-> This is a **private repo** — SSH key access to GitHub is required.
+**One-liner:**
 
 ```bash
-git clone git@github.com:king0980692/dotfile.git /tmp/dotfile
+bash <(curl -sL https://raw.githubusercontent.com/king0980692/dotfile/main/install.sh)
+```
+
+**Or manually:**
+
+```bash
+git clone https://github.com/king0980692/dotfile.git /tmp/dotfile
 /tmp/dotfile/install.sh
 rm -rf /tmp/dotfile
 ```
