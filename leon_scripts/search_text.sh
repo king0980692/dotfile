@@ -2,6 +2,13 @@
 
 # Controlling Ripgrep search and fzf search simultaneously
 
+for cmd in rg fzf bat; do
+    if ! command -v "$cmd" &>/dev/null; then
+        echo "Error: '$cmd' is not installed. Run 'mise install' first." >&2
+        exit 1
+    fi
+done
+
 export TEMP=$(mktemp -u)
 trap 'rm -f "$TEMP"' EXIT
 
