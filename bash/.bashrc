@@ -68,20 +68,19 @@ eval "$(/home/lychang/.local/bin/mise activate bash)"
 
 
 if [ -n "$TMUX" ]; then
-  eval "$(starship init bash)"
-  # PS1="$(starship prompt --status=$STATUS )"
+  command -v starship &>/dev/null && eval "$(starship init bash)"
 else
-  PS1="\[\e[32m\][\w]\[\e[89m\]\$(GIT_PS1_SHOWDIRTYSTATE=1 __git_ps1)\[\033[00m\] $ "
+  PS1="\[\e[32m\][\w]\[\e[89m\]\$(GIT_PS1_SHOWDIRTYSTATE=1 __git_ps1 2>/dev/null)\[\033[00m\] $ "
 fi
 
-eval "$(zoxide init bash)"
+command -v zoxide &>/dev/null && eval "$(zoxide init bash)"
 
 
 
 # Add this line at the end of .bashrc:
 [[ ! ${BLE_VERSION-} ]] || ble-attach
 
-eval "$(atuin init bash --disable-up-arrow)"
+command -v atuin &>/dev/null && eval "$(atuin init bash --disable-up-arrow)"
 
 
 
@@ -101,8 +100,6 @@ bleopt keymap_vi_mode_string_nmap=$'\e[1m-- NORMAL --\e[m'
 # bleopt keymap_vi_mode_name_insert=$'\e[1;mINSERT\e[m'
 
 
-
-source /home/lychang/.config/broot/launcher/bash/br
 
 # bun
 export BUN_INSTALL="$HOME/.bun"
