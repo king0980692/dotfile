@@ -9,22 +9,35 @@ info()  { printf '\033[1;34m[INFO]\033[0m %s\n' "$*"; }
 warn()  { printf '\033[1;33m[WARN]\033[0m %s\n' "$*"; }
 error() { printf '\033[1;31m[ERROR]\033[0m %s\n' "$*"; exit 1; }
 
+# ── 0. Ensure SSH access to GitHub ─────────────────────────────────
+if ! ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
+    warn "Cannot authenticate with GitHub via SSH."
+    warn "Make sure your SSH key is set up: https://docs.github.com/en/authentication/connecting-to-github-with-ssh"
+    read -rp "  Continue anyway? [y/N] " confirm
+    [[ "$confirm" =~ ^[Yy]$ ]] || exit 1
+fi
+
 # ── 1. Clone dotfiles ──────────────────────────────────────────────
 if [ -d "$XDG_CONFIG_HOME/.git" ]; then
     info "Dotfile repo already cloned, pulling latest..."
     git -C "$XDG_CONFIG_HOME" pull --ff-only
 else
     info "Cloning dotfiles into $XDG_CONFIG_HOME..."
-    # If .config already exists, clone into temp and move .git + files in
-    if [ -d "$XDG_CONFIG_HOME" ]; then
-        tmpdir=$(mktemp -d)
-        git clone "$DOTFILE_REPO" "$tmpdir"
-        cp -r "$tmpdir/.git" "$XDG_CONFIG_HOME/.git"
-        git -C "$XDG_CONFIG_HOME" checkout -- .
-        rm -rf "$tmpdir"
-    else
-        git clone "$DOTFILE_REPO" "$XDG_CONFIG_HOME"
-    fi
+    tmpdir=$(mktemp -d)
+    git clone "$DOTFILE_REPO" "$tmpdir"
+
+    # Merge into existing ~/.config without overwriting unrelated files
+    mkdir -p "$XDG_CONFIG_HOME"
+    # Copy .git repo metadata
+    cp -r "$tmpdir/.git" "$XDG_CONFIG_HOME/.git"
+    # Only checkout tracked dotfiles (won't touch unrelated configs)
+    git -C "$XDG_CONFIG_HOME" checkout -- .gitignore
+    git -C "$XDG_CONFIG_HOME" ls-files | while IFS= read -r f; do
+        mkdir -p "$XDG_CONFIG_HOME/$(dirname "$f")"
+        cp "$tmpdir/$f" "$XDG_CONFIG_HOME/$f"
+    done
+    rm -rf "$tmpdir"
+    info "Dotfiles merged into existing $XDG_CONFIG_HOME (other configs untouched)"
 fi
 
 # ── 2. Install mise (tool version manager) ─────────────────────────

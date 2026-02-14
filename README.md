@@ -31,18 +31,15 @@ aichat, usage, fastfetch, crush
 
 ### Install on a new environment
 
-**One-liner (via curl):**
+> This is a **private repo** — SSH key access to GitHub is required.
 
 ```bash
-bash <(curl -sL https://raw.githubusercontent.com/king0980692/dotfile/main/install.sh)
+git clone git@github.com:king0980692/dotfile.git /tmp/dotfile
+/tmp/dotfile/install.sh
+rm -rf /tmp/dotfile
 ```
 
-**Or manually:**
-
-```bash
-git clone git@github.com:king0980692/dotfile.git ~/.config
-~/.config/install.sh
-```
+The script safely merges dotfiles into your existing `~/.config` without overwriting unrelated configs (e.g. other apps' settings).
 
 Then restart your shell:
 
@@ -54,7 +51,7 @@ In tmux, press `prefix + I` to install tmux plugins.
 
 ### What install.sh does
 
-1. Clones the dotfile repo into `~/.config`
+1. Clones the dotfile repo and merges into `~/.config` (existing configs untouched)
 2. Installs **mise** → installs all 35+ CLI tools
 3. Installs **ble.sh** (bash line editor)
 4. Symlinks `~/.bashrc` → `~/.config/bash/.bashrc`
