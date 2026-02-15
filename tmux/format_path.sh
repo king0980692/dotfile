@@ -97,7 +97,7 @@ fi
 
 # File display is handled by cur_cmd.sh, so we only output the directory path here
 if [[ "$IS_ACTIVE" == "1" ]]; then
-    printf "#[align=right][ #[fg=color231,bg=color6]%s#[default]\n" "#[fg=green]#[fg=colour213]$FORMATTED#[fg=green]#[default] ]"
+    printf "#[align=right][ #[reverse,bold]%s#[default]\n" "#[fg=colour213]$FORMATTED#[fg=green]#[default] ]"
 else
-    echo "#[align=right]#[fg=green][ #[fg=colour214]$FORMATTED#[fg=green] ]"
+    echo "#[align=right][ #[fg=colour214]$FORMATTED#[fg=green] ]"
 fi

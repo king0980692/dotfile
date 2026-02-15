@@ -3,6 +3,9 @@
 
 -- vim.o.statuscolumn = "%!v:lua.require('mystcol').statuscolumn()"
 -- vim.o.statusline = "%#Normal#" .. "" .. "%="
+--
+-- vim.api.nvim_set_hl(0, 'TermCursor', { fg = '#FFFFFF', bg = '#FF5555', reverse = false })
+
 vim.opt.title = true
 vim.opt.titlestring = "nvim %F %m"
 vim.opt.ruler = false      -- 關閉右下角行列顯示
@@ -136,7 +139,7 @@ vim.pack.add({
   { src = "https://github.com/nvim-neo-tree/neo-tree.nvim" },
   { src = "https://github.com/nvim-lua/plenary.nvim" },
   { src = "https://github.com/MunifTanjim/nui.nvim"},
-  { src = "https://github.com/dstein64/nvim-scrollview" }
+  { src = "https://github.com/dstein64/nvim-scrollview" },
 
   -- ignore the status line into tmux
   -- { src = "https://github.com/vimpostor/vim-tpipeline.git" }, 
@@ -145,6 +148,7 @@ vim.pack.add({
 
 
   -- { src = "https://github.com/akinsho/toggleterm.nvim" }, 
+  { src = "https://github.com/Mofiqul/vscode.nvim" }, 
 
 })
 
@@ -319,7 +323,7 @@ vim.lsp.config('pyright', {
 
 -- require()
 -- vim.cmd("colorscheme vague")
-vim.cmd("colorscheme zaibatsu")
+vim.cmd("colorscheme vscode")
 vim.api.nvim_set_hl(0, "pmenu", {
     -- 將背景顏色 (bg) 設定為 nil 或 false 以實現透明
     bg = nil, 
@@ -871,3 +875,4 @@ if vim.env.SSH_TTY then
 
   vim.o.clipboard = "unnamedplus"
   end
+

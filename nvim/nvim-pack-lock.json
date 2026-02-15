@@ -132,6 +132,10 @@
     "vscode-diff.nvim": {
       "rev": "1cde497",
       "src": "https://github.com/esmuellert/vscode-diff.nvim"
+    },
+    "vscode.nvim": {
+      "rev": "aa1102a7e15195c9cca22730b09224a7f7745ba8",
+      "src": "https://github.com/Mofiqul/vscode.nvim"
     }
   }
 }

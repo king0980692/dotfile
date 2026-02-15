@@ -126,3 +126,40 @@ export -f open
 if ! pgrep -x "sleep" > /dev/null; then
     nohup sleep infinity > /dev/null 2>&1 &
 fi
+
+# zerobrew
+export ZEROBREW_DIR=/home/king0/.zerobrew
+export ZEROBREW_BIN=/home/king0/.zerobrew/bin
+export ZEROBREW_ROOT=/home/king0/.local/share/zerobrew
+export ZEROBREW_PREFIX=/home/king0/.local/share/zerobrew/prefix
+export PKG_CONFIG_PATH="$ZEROBREW_PREFIX/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+
+# SSL/TLS certificates (only if ca-certificates is installed)
+if [ -f "$ZEROBREW_PREFIX/opt/ca-certificates/share/ca-certificates/cacert.pem" ]; then
+  export CURL_CA_BUNDLE="$ZEROBREW_PREFIX/opt/ca-certificates/share/ca-certificates/cacert.pem"
+  export SSL_CERT_FILE="$ZEROBREW_PREFIX/opt/ca-certificates/share/ca-certificates/cacert.pem"
+elif [ -f "$ZEROBREW_PREFIX/etc/ca-certificates/cacert.pem" ]; then
+  export CURL_CA_BUNDLE="$ZEROBREW_PREFIX/etc/ca-certificates/cacert.pem"
+  export SSL_CERT_FILE="$ZEROBREW_PREFIX/etc/ca-certificates/cacert.pem"
+elif [ -f "$ZEROBREW_PREFIX/share/ca-certificates/cacert.pem" ]; then
+  export CURL_CA_BUNDLE="$ZEROBREW_PREFIX/share/ca-certificates/cacert.pem"
+  export SSL_CERT_FILE="$ZEROBREW_PREFIX/share/ca-certificates/cacert.pem"
+fi
+
+if [ -d "$ZEROBREW_PREFIX/etc/ca-certificates" ]; then
+  export SSL_CERT_DIR="$ZEROBREW_PREFIX/etc/ca-certificates"
+elif [ -d "$ZEROBREW_PREFIX/share/ca-certificates" ]; then
+  export SSL_CERT_DIR="$ZEROBREW_PREFIX/share/ca-certificates"
+fi
+
+# Helper function to safely append to PATH
+_zb_path_append() {
+    local argpath="$1"
+    case ":${PATH}:" in
+        *:"$argpath":*) ;;
+        *) export PATH="$argpath:$PATH" ;;
+    esac;
+}
+
+_zb_path_append "$ZEROBREW_BIN"
+_zb_path_append "$ZEROBREW_PREFIX/bin"

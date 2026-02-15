@@ -91,6 +91,6 @@ if ps -o comm= -t "$pane_tty" 2>/dev/null | grep -qi "nvim" && [[ -n "$pane_titl
         fi
 
         display_path=$(shorten_path "$display_path")
-        echo -n "#[fg=colour246] ➢  #[fg=colour214]$display_path#[fg=colour214] "
+        echo -n "#[fg=colour224] ➢ #[fg=colour224]$display_path#[fg=colour224] "
     fi
 fi
