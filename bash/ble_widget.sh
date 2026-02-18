@@ -3,7 +3,7 @@ function ble/widget/zi_widget {
   tmux set -g pane-border-format "#(~/.config/tmux/format_path.sh '#{pane_current_path}' '#{pane_title}' '#{pane_active}')#(~/.config/tmux/cur_cmd.sh '#{pane_tty}' '#{pane_title}' '#{pane_current_path}')#[default]"
   ble/widget/redraw-line
   echo \[$PWD\] 
-  ls --color
+  ls --color=auto
 
 }
 ble-bind -m 'vi_imap' -f 'M-c' 'zi_widget'

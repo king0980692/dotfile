@@ -103,9 +103,4 @@ format = '[${symbol} ${pyenv_prefix}(${version} )(\($virtualenv\) )]($style) '
 [nodejs]
 disabled = true
 
-[mise]
-symbol = '😎 '
-healthy_symbol = 'ready'
-unhealthy_symbol = 'not ready'
-format = 'on [$symbol$health]($style) '
-disabled = false
+# [mise] module not supported in this starship version

@@ -54,8 +54,7 @@ function on_chpwd {
 	# tmux set -g pane-border-format "#(~/.config/tmux/format_path.sh '#{pane_current_path}' '#{pane_title}')#(~/.config/tmux/cur_cmd.sh '#{pane_tty}' '#{pane_title}')#[default] "
 
   tmux set -g pane-border-format "#(~/.config/tmux/format_path.sh '#{pane_current_path}' '#{pane_title}' '#{pane_active}')#(~/.config/tmux/cur_cmd.sh '#{pane_tty}' '#{pane_title}' '#{pane_current_path}')#[default]"
-  echo $PWD 
-  ls --color
+  ls --color=auto
   fi
 }
 

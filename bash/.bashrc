@@ -4,162 +4,100 @@ case $- in
       *) return;;
 esac
 
+# Locale (required by ble.sh)
+export LANG="${LANG:-en_US.UTF-8}"
+export LC_ALL="${LC_ALL:-en_US.UTF-8}"
+
+# Disable bash history (using zsh-histdb as the single source of truth)
+export HISTFILE=/dev/null
+export HISTSIZE=0
+
 #####################################################################
 
-# Add this lines at the top of .bashrc:
 [[ $- == *i* ]] && source -- ~/.local/share/blesh/ble.sh --noattach
-# your bashrc settings come here...
 
 source ~/.config/bash/ble_config.sh
 source ~/.config/bash/ble_widget.sh
 
 ble/complete/auto-complete/source:atuin-history() { :; }
 
-
-
-# enable color support of ls and also add handy aliases
-if [ -x /usr/bin/dircolors ]; then
-    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
-    alias ls='ls --color=auto'
-fi
-
-
-
-
 #########
 # alias #
 #########
-# alias v='nvim'
 alias vim='nvim'
-
 alias vz='vim ~/.config/bash/.bashrc'
 alias vt='vim ~/.config/tmux/tmux.conf'
 alias vnv='vim ~/.config/nvim/init.lua'
 alias lg='lazygit'
 alias ..='cd ..'
-alias ll='ls -l'
-alias la='ls -al'
-alias l='ls '
-
+alias ls='ls --color=auto'
+alias ll='ls -lh'
+alias la='ls -lah'
+alias l='ls'
 
 export EDITOR="nvim"
 
 ta() {
-    # 1. 檢查是否有 tmux 伺服器正在執行
     if ! command -v tmux &> /dev/null; then
-        echo "錯誤：未找到 'tmux' 命令。請先安裝 tmux。"
+        echo "錯誤：未找到 'tmux' 命令。"
         return 1
     fi
-
-    # 檢查是否有任何 tmux 伺服器在運行
     if [[ -z "$(tmux ls 2>/dev/null)" ]]; then
-	# 沒有伺服器在執行
-        SESSION_NAME="HOME"
-        tmux new -s "$SESSION_NAME" -c "$HOME"
+        tmux new -s "HOME" -c "$HOME"
     else
-        # 附加到伺服器中的最後一個會話
-		tmux attach -t "$(tmux list-sessions -F '#{session_name}' | grep -v '^popup$' | tail -n 1)"
+        tmux attach -t "$(tmux list-sessions -F '#{session_name}' | grep -v '^popup$' | tail -n 1)"
     fi
 }
 
+# Cache eval output — only regenerate when binary changes
+_cached_eval() {
+    local name="$1" bin="$2"; shift 2
+    local cache="$HOME/.cache/bash_init/${name}.sh"
+    local bin_path
+    # support both full path and command name
+    if [[ "$bin" == /* ]]; then
+        bin_path="$bin"
+    else
+        bin_path=$(command -v "$bin" 2>/dev/null) || return
+    fi
+    [[ -x "$bin_path" ]] || return
+    mkdir -p "$HOME/.cache/bash_init"
+    if [[ ! -f "$cache" || "$bin_path" -nt "$cache" ]]; then
+        "$@" > "$cache" 2>/dev/null
+    fi
+    source "$cache"
+}
 
-[ -x "$HOME/.local/bin/mise" ] && eval "$("$HOME/.local/bin/mise" activate bash)"
-# be ware the package installed by mise, need put after here
+_cached_eval mise "$HOME/.local/bin/mise" "$HOME/.local/bin/mise" activate bash
+# ^^^ packages installed by mise must come after this line
 
-# ble.sh fzf integration (must be after mise activate so fzf is in PATH)
-if command -v fzf &>/dev/null; then
-    _ble_contrib_fzf_base=$(command -v fzf)
-    ble-import -d integration/fzf-completion
-fi
+# fzf available via mise (no key binding integration — using custom widgets)
 
 if [ -n "$TMUX" ]; then
-  command -v starship &>/dev/null && eval "$(starship init bash)"
+    _cached_eval starship starship starship init bash
 else
-  PS1="\[\e[32m\][\w]\[\e[89m\]\$(GIT_PS1_SHOWDIRTYSTATE=1 __git_ps1 2>/dev/null)\[\033[00m\] $ "
+    PS1="\[\e[32m\][\w]\[\e[89m\]\$(GIT_PS1_SHOWDIRTYSTATE=1 __git_ps1 2>/dev/null)\[\033[00m\] $ "
 fi
 
-command -v zoxide &>/dev/null && eval "$(zoxide init bash)"
-
-
+_cached_eval zoxide zoxide zoxide init bash
 
 # Add this line at the end of .bashrc:
 [[ ! ${BLE_VERSION-} ]] || ble-attach
 
 command -v atuin &>/dev/null && eval "$(atuin init bash --disable-up-arrow)"
 
-
-
 source ~/.config/bash/lscolors.sh
 source ~/.config/bash/git-completion.bash
 source ~/.config/bash/git_alias.sh
 source ~/.config/bash/extract.sh
 
-export PATH="/home/lychang/.config/leon_scripts/:$PATH"
+# GNU coreutils (for ls --color and other GNU tools)
+export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"
+
+export PATH="$HOME/.config/leon_scripts/:$PATH"
 export EDITOR='nvim'
-export PAGER='ov'
+export PAGER='less'
 export PYTHONBREAKPOINT="ipdb.set_trace"
 
-
-
-bleopt keymap_vi_mode_string_nmap=$'\e[1m-- NORMAL --\e[m'
-# bleopt keymap_vi_mode_name_insert=$'\e[1;mINSERT\e[m'
-
-
-
-# bun
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
-
-# opencode
-export PATH=/home/lychang/.opencode/bin:$PATH
-
-function open() {
-  if [[ "$1" == "" ]]; then
-    Explorer.exe .
-  else
-    # Handle Windows paths correctly
-    Explorer.exe ${1//\\//\\\\}
-  fi
-}
-export -f open
-
-if ! pgrep -x "sleep" > /dev/null; then
-    nohup sleep infinity > /dev/null 2>&1 &
-fi
-
-# zerobrew
-export ZEROBREW_DIR=/home/king0/.zerobrew
-export ZEROBREW_BIN=/home/king0/.zerobrew/bin
-export ZEROBREW_ROOT=/home/king0/.local/share/zerobrew
-export ZEROBREW_PREFIX=/home/king0/.local/share/zerobrew/prefix
-export PKG_CONFIG_PATH="$ZEROBREW_PREFIX/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
-
-# SSL/TLS certificates (only if ca-certificates is installed)
-if [ -f "$ZEROBREW_PREFIX/opt/ca-certificates/share/ca-certificates/cacert.pem" ]; then
-  export CURL_CA_BUNDLE="$ZEROBREW_PREFIX/opt/ca-certificates/share/ca-certificates/cacert.pem"
-  export SSL_CERT_FILE="$ZEROBREW_PREFIX/opt/ca-certificates/share/ca-certificates/cacert.pem"
-elif [ -f "$ZEROBREW_PREFIX/etc/ca-certificates/cacert.pem" ]; then
-  export CURL_CA_BUNDLE="$ZEROBREW_PREFIX/etc/ca-certificates/cacert.pem"
-  export SSL_CERT_FILE="$ZEROBREW_PREFIX/etc/ca-certificates/cacert.pem"
-elif [ -f "$ZEROBREW_PREFIX/share/ca-certificates/cacert.pem" ]; then
-  export CURL_CA_BUNDLE="$ZEROBREW_PREFIX/share/ca-certificates/cacert.pem"
-  export SSL_CERT_FILE="$ZEROBREW_PREFIX/share/ca-certificates/cacert.pem"
-fi
-
-if [ -d "$ZEROBREW_PREFIX/etc/ca-certificates" ]; then
-  export SSL_CERT_DIR="$ZEROBREW_PREFIX/etc/ca-certificates"
-elif [ -d "$ZEROBREW_PREFIX/share/ca-certificates" ]; then
-  export SSL_CERT_DIR="$ZEROBREW_PREFIX/share/ca-certificates"
-fi
-
-# Helper function to safely append to PATH
-_zb_path_append() {
-    local argpath="$1"
-    case ":${PATH}:" in
-        *:"$argpath":*) ;;
-        *) export PATH="$argpath:$PATH" ;;
-    esac;
-}
-
-_zb_path_append "$ZEROBREW_BIN"
-_zb_path_append "$ZEROBREW_PREFIX/bin"
