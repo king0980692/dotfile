@@ -36,3 +36,16 @@ yazi/plugins/
 
 !git/
 !git/**
+
+!nix-darwin/
+!nix-darwin/**
+
+!karabiner/
+!karabiner/**
+karabiner/automatic_backups/
+
+!skhd/
+!skhd/**
+
+!yabai/
+!yabai/**
