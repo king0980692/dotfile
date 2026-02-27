@@ -34,9 +34,6 @@
   # 啟用 skhd（hotkey daemon），設定檔在 ~/.config/skhd/skhdrc
   services.skhd.enable = true;
 
-  # 啟用 Karabiner-Elements（key remapping）
-  services.karabiner-elements.enable = true;
-
   # Determinate Nix 自己管理 daemon，不讓 nix-darwin 接管
   nix.enable = false;
 
