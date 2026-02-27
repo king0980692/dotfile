@@ -16,7 +16,7 @@
       modules = [ ./configuration.nix ];
     };
   in {
-    darwinConfigurations."Leon-mb-air"   = mkSystem;
-    darwinConfigurations."Leon-mb-airm4" = mkSystem;
+    darwinConfigurations."Leon-mb-air" = mkSystem;
+    darwinConfigurations."Leonmbairm4"  = mkSystem;
   };
 }
