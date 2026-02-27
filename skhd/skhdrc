@@ -7,8 +7,8 @@ cmd+alt - n : yabai -m space --create && \
 cmd+alt - x : ~/.config/skhd/space_destroy.sh
 
 
-ctrl + alt - 0x27 : ~/.config/skhd/space_focus_next.sh
-ctrl + alt - h : ~/.config/skhd/space_focus_prev.sh
+# ctrl + alt - 0x27 : ~/.config/skhd/space_focus_next.sh
+# ctrl + alt - h : ~/.config/skhd/space_focus_prev.sh
 
 fn - 0x21 : ~/.config/skhd/space_focus_prev.sh # fn + [
 fn - 0x1E : ~/.config/skhd/space_focus_next.sh # fn + ]
@@ -306,3 +306,17 @@ f11 [
   "Google Chrome" : skhd -k "fn - f"
   "Safari" : skhd -k "fn - f"
 ]
+
+# rcmd + F1~F12 → actual function keys F1~F12
+# rcmd - f1  : skhd -k "f1"
+# rcmd - f2  : skhd -k "f2"
+# rcmd - f3  : skhd -k "f3"
+# rcmd - f4  : skhd -k "f4"
+# rcmd - f5  : skhd -k "f5"
+# rcmd - f6  : skhd -k "f6"
+# rcmd - f7  : skhd -k "f7"
+# rcmd - f8  : skhd -k "f8"
+# rcmd - f9  : skhd -k "f9"
+# rcmd - f10 : skhd -k "f10"
+# rcmd - f11 : skhd -k "f11"
+# rcmd - f12 : skhd -k "f12"
