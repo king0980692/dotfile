@@ -8,9 +8,9 @@ esac
 export LANG="${LANG:-en_US.UTF-8}"
 export LC_ALL="${LC_ALL:-en_US.UTF-8}"
 
-# Disable bash history (using zsh-histdb as the single source of truth)
+# atuin 負責硬碟持久化，bash 只保留 in-memory history 供 Ctrl+P/N 使用
 export HISTFILE=/dev/null
-export HISTSIZE=0
+export HISTSIZE=10000
 
 #####################################################################
 

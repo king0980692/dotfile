@@ -8,6 +8,7 @@
     htop
     stats  # macOS menu bar system monitor
     timg   # terminal image viewer
+    skhd   # hotkey daemon
   ];
 
   # macOS 系統設定
@@ -33,8 +34,15 @@
   # 確保 ~/.local/bin 在 PATH 裡（claude code 等 user-installed tools）
   environment.systemPath = [ "$HOME/.local/bin" ];
 
-  # 啟用 skhd（hotkey daemon），設定檔在 ~/.config/skhd/skhdrc
-  services.skhd.enable = true;
+  # skhd LaunchAgent，加 sleep 5 避免 boot 時 Accessibility API 還沒準備好
+  launchd.user.agents.skhd = {
+    serviceConfig = {
+      ProgramArguments = [ "/bin/sh" "-c" "sleep 5 && exec /run/current-system/sw/bin/skhd" ];
+      KeepAlive = true;
+      RunAtLoad = true;
+      ProcessType = "Interactive";
+    };
+  };
 
   # Determinate Nix 自己管理 daemon，不讓 nix-darwin 接管
   nix.enable = false;

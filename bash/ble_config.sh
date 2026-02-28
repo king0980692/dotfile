@@ -44,6 +44,8 @@ set -o vi
 ble-bind -m vi_imap -f 'j j' 'vi_imap/normal-mode'
 ble-bind -m vi_imap -f 'C-c' discard-line
 ble-bind -m vi_nmap -f 'C-c' discard-line
+ble-bind -m vi_imap -f 'C-p' 'history-prev'
+ble-bind -m vi_imap -f 'C-n' 'history-next'
 
 
 # Hook

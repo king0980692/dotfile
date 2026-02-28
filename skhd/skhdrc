@@ -12,6 +12,7 @@ cmd+alt - x : ~/.config/skhd/space_destroy.sh
 
 fn - 0x21 : ~/.config/skhd/space_focus_prev.sh # fn + [
 fn - 0x1E : ~/.config/skhd/space_focus_next.sh # fn + ]
+
 fn - 0x2A: skhd -k "ctrl - tab"
 fn - 0x23: skhd -k "ctrl - p" # fn+p : ctrl+p
 fn - 0x2D: skhd -k "ctrl - n" # fn+n : ctrl+n
@@ -335,15 +336,3 @@ ralt - f10 : osascript -e 'set volume output muted (not (output muted of (get vo
 ralt - f11 : osascript -e 'set volume output volume (output volume of (get volume settings) - 5)'
 ralt - f12 : osascript -e 'set volume output volume (output volume of (get volume settings) + 5)'
 
-# ralt - f1  : skhd -k "brightness_down"
-# ralt - f2  : skhd -k "brightness_up"
-# ralt - f3  : skhd -k "mission_control"
-# ralt - f4  : skhd -k "launchpad"
-# ralt - f5  : skhd -k "illumination_down"
-# ralt - f6  : skhd -k "illumination_up"
-# ralt - f7  : skhd -k "prev_song"
-# ralt - f8  : skhd -k "play"
-# ralt - f9  : skhd -k "next_song"
-# ralt - f10 : skhd -k "mute"
-# ralt - f11 : skhd -k "sound_down"
-# ralt - f12 : skhd -k "sound_up"
