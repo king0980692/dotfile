@@ -6,6 +6,7 @@
     git
     wget
     htop
+    stats  # macOS menu bar system monitor
   ];
 
   # macOS 系統設定
