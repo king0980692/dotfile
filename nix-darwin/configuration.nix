@@ -7,6 +7,7 @@
     wget
     htop
     stats  # macOS menu bar system monitor
+    timg   # terminal image viewer
   ];
 
   # macOS 系統設定

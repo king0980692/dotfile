@@ -134,6 +134,7 @@ shift - backspace  :skhd -k "delete"
 ctrl - x [
    "Google chrome" : skhd -k "cmd - x"
    "Safari" : skhd -k "cmd - x"
+   "Min" : skhd -k "cmd - x"
    # "kitty" : skhd -k "ctrl - a"
   "Zen": skhd -k "cmd - x"
 ]
@@ -141,18 +142,21 @@ ctrl - x [
 ctrl - u [
    "Google chrome" : skhd -k "cmd - u"
    "Safari" : skhd -k "cmd - u"
+   "Min" : skhd -k "cmd - u"
    # "kitty" : skhd -k "ctrl - a"
   "Zen": skhd -k "cmd - u"
 ]
 ctrl - e [
    "Google chrome" : skhd -k "cmd - e"
    "Safari" : skhd -k "cmd - e"
+   "Min" : skhd -k "cmd - e"
    # "kitty" : skhd -k "ctrl - a"
   "Zen": skhd -k "cmd - e"
 ]
 ctrl - a [
    "Google chrome" : skhd -k "cmd - a"
    "Safari" : skhd -k "cmd - a"
+   "Min" : skhd -k "cmd - a"
    # "kitty" : skhd -k "ctrl - a"
   "Zen": skhd -k "cmd - a"
 ]
@@ -162,6 +166,7 @@ shift + ctrl - v [
   "Arc" : skhd -k "cmd+shift - v"
   "Google Chrome": skhd -k "cmd+shift - v"
   "Safari" : skhd -k "cmd+shift - v"
+   "Min" : skhd -k "cmd+shift - v"
   "Zen": skhd -k "cmd+shift - v"
   "Word": skhd -k "cmd+shift - v"
 ]
@@ -170,6 +175,8 @@ ctrl - b [
  # "*": skhd -k "cmd -b"
   "Google Chrome": skhd -k "cmd - b"
   "Safari": skhd -k "cmd - b"
+  "Min": skhd -k "cmd - b"
+
 ]
 
 
@@ -179,11 +186,13 @@ ctrl - v [
   "Google Chrome": skhd -k "cmd - v"
   "Zen": skhd -k "cmd - v"
   "Safari": skhd -k "cmd - v"
+  "Min": skhd -k "cmd - v"
 ]
 ctrl - c [
   "Arc" : skhd -k "cmd - c"
   "Google Chrome": skhd -k "cmd - c"
   "Safari": skhd -k "cmd - c"
+  "Min": skhd -k "cmd - c"
   "Zen": skhd -k "cmd - c"
 ]
 # alt - w [
@@ -205,6 +214,7 @@ rcmd - p [
   "Ghostty" : skhd -k "alt - p"
   "Google Chrome" : skhd -k "alt - p"
   "Safari" : skhd -k "alt - p"
+  "Min" : skhd -k "alt - p"
   "alacritty" : skhd -k "alt - p"
 ]
 rcmd - l [
@@ -223,6 +233,7 @@ ctrl - w [
   "Microsoft Edge" : skhd -k "cmd - w"
   "Google Chrome" : skhd -k "cmd - w"
   "Safari" : skhd -k "cmd - w"
+  "Min" : skhd -k "cmd - w"
   "Code" : skhd -k "cmd - w"
 ]
 ctrl - s [
@@ -234,12 +245,14 @@ ctrl - z [
   "Arc": skhd -k "cmd - z"
   "Google Chrome" : skhd -k "cmd - z"
   "Safari" : skhd -k "cmd - z"
+  "Min" : skhd -k "cmd - z"
   "Zen" : skhd -k "cmd - z"
 ]
 shift+ctrl - z [
   "Microsoft Edge" : skhd -k "cmd+shift - z"
   "Google Chrome" : skhd -k "cmd+shift - z"
   "Safari" : skhd -k "cmd+shift - z"
+  "Min" : skhd -k "cmd+shift - z"
   "Arc": skhd -k "cmd+shift - z"
   "Zen" : skhd -k "cmd - z"
 ]
@@ -247,12 +260,14 @@ ctrl - t [
   "Microsoft Edge" : skhd -k "cmd - t"
   "Google Chrome" : skhd -k "cmd - t"
   "Safari" : skhd -k "cmd - t"
+  "Min" : skhd -k "cmd - t"
   # "Zen" : skhd -k "cmd - t"
 ]
 ctrl - n [
   "Microsoft Edge" : skhd -k "cmd - n"
   "Google Chrome" : skhd -k "cmd - n"
   "Safari" : skhd -k "cmd - n"
+  "Min" : skhd -k "cmd - n"
   "Zen" : skhd -k "cmd - n"
   # "Arc": skhd -k "ctrl - n"
 ]
@@ -260,12 +275,14 @@ shift+ctrl - n [
   "Microsoft Edge" : skhd -k "cmd+shift - n"
   "Google Chrome" : skhd -k "cmd+shift - n"
   "Safari" : skhd -k "cmd+shift - n"
+  "Min" : skhd -k "cmd+shift - n"
   "Zen" : skhd -k "cmd+shift - n"
 ]
 ctrl - r [
   "Microsoft Edge" : skhd -k "cmd - r"
   "Google Chrome" : skhd -k "cmd - r"
   "Safari" : skhd -k "cmd - r"
+  "Min" : skhd -k "cmd - r"
   # "Zen" : skhd -k "cmd - r"
 ]
 
@@ -273,6 +290,7 @@ ctrl - f [
   "Microsoft Edge" : skhd -k "cmd - f"
   "Google Chrome" : skhd -k "cmd - f"
   "Safari" : skhd -k "cmd - f"
+  "Min" : skhd -k "cmd - f"
   "Zen" : skhd -k "cmd - f"
   # "Arc" : skhd -k "cmd - f"
 ]
@@ -305,18 +323,27 @@ ctrl - o [
 f11 [
   "Google Chrome" : skhd -k "fn - f"
   "Safari" : skhd -k "fn - f"
+  "Min" : skhd -k "fn - f"
 ]
 
-# rcmd + F1~F12 → actual function keys F1~F12
-# rcmd - f1  : skhd -k "f1"
-# rcmd - f2  : skhd -k "f2"
-# rcmd - f3  : skhd -k "f3"
-# rcmd - f4  : skhd -k "f4"
-# rcmd - f5  : skhd -k "f5"
-# rcmd - f6  : skhd -k "f6"
-# rcmd - f7  : skhd -k "f7"
-# rcmd - f8  : skhd -k "f8"
-# rcmd - f9  : skhd -k "f9"
-# rcmd - f10 : skhd -k "f10"
-# rcmd - f11 : skhd -k "f11"
-# rcmd - f12 : skhd -k "f12"
+#ralt + F1~F12 → fn + F1~F12 (media/action keys)
+
+# lctrl - f1  : osascript -e 'tell application "System Events" to key code 145'
+# lctrl - f2  : osascript -e 'tell application "System Events" to key code 144'
+
+ralt - f10 : osascript -e 'set volume output muted (not (output muted of (get volume settings)))'
+ralt - f11 : osascript -e 'set volume output volume (output volume of (get volume settings) - 5)'
+ralt - f12 : osascript -e 'set volume output volume (output volume of (get volume settings) + 5)'
+
+# ralt - f1  : skhd -k "brightness_down"
+# ralt - f2  : skhd -k "brightness_up"
+# ralt - f3  : skhd -k "mission_control"
+# ralt - f4  : skhd -k "launchpad"
+# ralt - f5  : skhd -k "illumination_down"
+# ralt - f6  : skhd -k "illumination_up"
+# ralt - f7  : skhd -k "prev_song"
+# ralt - f8  : skhd -k "play"
+# ralt - f9  : skhd -k "next_song"
+# ralt - f10 : skhd -k "mute"
+# ralt - f11 : skhd -k "sound_down"
+# ralt - f12 : skhd -k "sound_up"

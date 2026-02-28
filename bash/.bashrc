@@ -101,3 +101,4 @@ export PYTHONBREAKPOINT="ipdb.set_trace"
 
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
+eval "$(/opt/homebrew/bin/brew shellenv)"
