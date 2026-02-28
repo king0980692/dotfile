@@ -336,3 +336,6 @@ ralt - f10 : osascript -e 'set volume output muted (not (output muted of (get vo
 ralt - f11 : osascript -e 'set volume output volume (output volume of (get volume settings) - 5)'
 ralt - f12 : osascript -e 'set volume output volume (output volume of (get volume settings) + 5)'
 
+
+# DEBUG TEST
+ctrl + shift - f12 : touch /tmp/skhd_works
