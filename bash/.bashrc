@@ -91,6 +91,9 @@ source ~/.config/bash/git-completion.bash
 source ~/.config/bash/git_alias.sh
 source ~/.config/bash/extract.sh
 
+# Homebrew
+eval "$(/opt/homebrew/bin/brew shellenv)"
+
 # GNU coreutils (for ls --color and other GNU tools)
 [[ -d "/opt/homebrew/opt/coreutils/libexec/gnubin" ]] && export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"
 
@@ -102,3 +105,5 @@ export PYTHONBREAKPOINT="ipdb.set_trace"
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 [[ -x "/opt/homebrew/bin/brew" ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
+
+bleopt keymap_vi_mode_string_nmap=$'\e[1m-- NORMAL --\e[m'
