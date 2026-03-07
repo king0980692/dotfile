@@ -1,0 +1,113 @@
+command = /run/current-system/sw/bin/bash
+# Theme
+theme = "Vague"
+font-family = "Cascadia Mono NF"
+font-synthetic-style = false
+font-size = 17
+
+# Custom Shader
+# See https://github.com/sahaj-b/ghostty-cursor-shaders
+custom-shader = shaders/cursor_warp.glsl
+
+# Window
+window-height = 50
+window-width = 180
+# window-position-x = 180
+# window-position-y = 180
+window-padding-x = 0
+window-padding-y = 0
+window-padding-balance = true
+window-save-state = never
+window-new-tab-position = current
+
+# Cursor
+cursor-style = block
+cursor-style-blink = false
+shell-integration-features = no-cursor
+
+# Quick Terminal
+quick-terminal-position = center
+quick-terminal-animation-duration = 0
+
+# Misc
+confirm-close-surface = true
+macos-option-as-alt = true
+clipboard-paste-protection = false
+clipboard-paste-bracketed-safe = false
+quick-terminal-size = 70%,70%
+quick-terminal-position = center
+auto-update-channel = tip
+window-decoration = auto
+quit-after-last-window-closed = true
+macos-titlebar-style = tabs
+
+
+copy-on-select = clipboard
+
+
+
+# Key-bindings
+keybind = clear
+
+keybind = global:alt+space=toggle_quick_terminal
+
+keybind = f11=toggle_fullscreen
+
+keybind = alt+equal=increase_font_size:1
+keybind = alt+minus=decrease_font_size:1
+
+keybind = super+r=reload_config
+
+
+
+
+keybind = ctrl+shift+v=paste_from_clipboard
+keybind = ctrl+shift+t=new_tab
+# keybind = sher+shift+alt+h=hide
+
+
+keybind = super+one=goto_tab:1
+keybind = super+two=goto_tab:2
+keybind = super+three=goto_tab:3
+keybind = super+four=goto_tab:4
+keybind = super+five=goto_tab:5
+keybind = super+six=goto_tab:6
+keybind = super+seven=goto_tab:7
+keybind = super+eight=goto_tab:8
+keybind = super+nine=goto_tab:9
+
+# Tmux M-... (Meta/Alt) via Command
+# 讓 Command+... 送出與 Alt+... 相同的 escape sequence
+# 注意：super+q / super+h / super+s 可能與 macOS 系統快捷鍵衝突
+
+# Prefix
+keybind = super+q=text:\x1bq
+
+# Toggle popup
+keybind = super+p=text:\x1bp
+
+# Pane navigation (M-h/j/k/l/c/i)
+keybind = super+h=text:\x1bh
+keybind = super+j=text:\x1bj
+keybind = super+k=text:\x1bk
+keybind = super+l=text:\x1bl
+keybind = super+c=text:\x1bc
+keybind = super+i=text:\x1bi
+
+# Pane resize (M-Left/Right/Up/Down)
+keybind = super+left=text:\x1b[1;3D
+keybind = super+right=text:\x1b[1;3C
+keybind = super+up=text:\x1b[1;3A
+keybind = super+down=text:\x1b[1;3B
+
+# Window split
+keybind = super+n=text:\x1bn
+keybind = super+apostrophe=text:\x1b'
+keybind = super+5=text:\x1b5
+
+# Session switcher
+keybind = super+s=text:\x1bs
+
+
+
+

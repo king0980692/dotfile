@@ -49,3 +49,6 @@ karabiner/automatic_backups/
 
 !yabai/
 !yabai/**
+
+!ghostty/
+!ghostty/**
