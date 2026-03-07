@@ -92,7 +92,7 @@ source ~/.config/bash/git_alias.sh
 source ~/.config/bash/extract.sh
 
 # GNU coreutils (for ls --color and other GNU tools)
-export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"
+[[ -d "/opt/homebrew/opt/coreutils/libexec/gnubin" ]] && export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"
 
 export PATH="$HOME/.config/leon_scripts/:$PATH"
 export EDITOR='nvim'
@@ -101,4 +101,4 @@ export PYTHONBREAKPOINT="ipdb.set_trace"
 
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
-eval "$(/opt/homebrew/bin/brew shellenv)"
+[[ -x "/opt/homebrew/bin/brew" ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
