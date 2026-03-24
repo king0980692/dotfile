@@ -2,7 +2,7 @@
 aichat = "0.29.0"
 atuin = "latest"
 bat = "latest"
-bun = "1.3.5"
+bun = "latest"
 cloudflared = "latest"
 cmake = "latest"
 delta = "latest"

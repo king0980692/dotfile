@@ -72,36 +72,7 @@ fi
 info "Symlinking shell configs..."
 ln -sfn "$XDG_CONFIG_HOME/bash/.bashrc" "$HOME/.bashrc"
 
-# Create .blerc if not present
-if [ ! -f "$HOME/.blerc" ]; then
-    cat > "$HOME/.blerc" << 'BLERC'
-
-########################
-# Setting prompt colors
-########################
-
-get_color() { tput setaf "$1"; }
-
-COL_USER="${color4:-$(get_color 12)}"
-COL_HOST="${color6:-$(get_color 5)}"
-COL_PATH="${color2:-$(get_color 11)}"
-COL_ROOT="${color1:-$(get_color 1)}"
-COL_RESET="$(tput sgr0)"
-
-bleopt prompt_ps1_final=
-bleopt prompt_ps1_transient=
-
-function ble/prompt/backslash:my/vim-mode {
-  bleopt keymap_vi_mode_update_prompt:=1
-  case $_ble_decode_keymap in
-    (vi_[on]map) ble/prompt/print '(cmd)' ;;
-    (vi_imap)    ble/prompt/print '(ins)' ;;
-    (vi_smap)    ble/prompt/print '(sel)' ;;
-    (vi_xmap)    ble/prompt/print '(vis)' ;;
-  esac
-}
-BLERC
-fi
+ln -sfn "$XDG_CONFIG_HOME/bash/.blerc" "$HOME/.blerc"
 
 # ── 6. Symlink .gitconfig ──────────────────────────────────────────
 if [ -f "$XDG_CONFIG_HOME/.gitconfig" ]; then
