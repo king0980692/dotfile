@@ -143,16 +143,14 @@ vim.pack.add({
   { src = "https://github.com/MunifTanjim/nui.nvim"},
   { src = "https://github.com/dstein64/nvim-scrollview" },
   { src = "https://github.com/Mofiqul/vscode.nvim" },
-  { src = "https://github.com/ibhagwan/fzf-lua" }
+  { src = "https://github.com/ibhagwan/fzf-lua" },
 
   -- ignore the status line into tmux
-  -- { src = "https://github.com/vimpostor/vim-tpipeline.git" }, 
+  -- { src = "https://github.com/vimpostor/vim-tpipeline.git" },
 
   -- { src = "https://github.com/A7Lavinraj/fyler.nvim"  },
 
-
-  -- { src = "https://github.com/akinsho/toggleterm.nvim" }, 
-  { src = "https://github.com/Mofiqul/vscode.nvim" }, 
+  -- { src = "https://github.com/akinsho/toggleterm.nvim" },
 
 })
 
