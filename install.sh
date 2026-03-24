@@ -9,6 +9,13 @@ info()  { printf '\033[1;34m[INFO]\033[0m %s\n' "$*"; }
 warn()  { printf '\033[1;33m[WARN]\033[0m %s\n' "$*"; }
 error() { printf '\033[1;31m[ERROR]\033[0m %s\n' "$*"; exit 1; }
 
+# ── 0. Ensure locale ───────────────────────────────────────────────
+if ! locale -a 2>/dev/null | grep -qi 'en_US\.utf.*8'; then
+    info "Generating en_US.UTF-8 locale..."
+    sudo locale-gen en_US.UTF-8
+    sudo update-locale LANG=en_US.UTF-8
+fi
+
 # ── 1. Clone dotfiles ──────────────────────────────────────────────
 if [ -d "$XDG_CONFIG_HOME/.git" ]; then
     info "Dotfile repo already cloned, pulling latest..."
