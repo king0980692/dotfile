@@ -76,6 +76,8 @@ vim.keymap.set("n", "<C-u>", "<C-u>zz", { noremap = true, silent = true })
 
 vim.keymap.set("n", "H", "<cmd>BufferPrevious<cr>", { desc = "Move to previous buffer" })
 vim.keymap.set("n", "L", "<cmd>BufferNext<cr>", { desc = "Move to next buffer" })
+vim.keymap.set("n", "<C-Tab>", "<cmd>BufferNext<cr>", { desc = "Next tab" })
+vim.keymap.set("n", "<C-S-Tab>", "<cmd>BufferPrevious<cr>", { desc = "Previous tab" })
 -- vim.keymap.set("n", "H", "<cmd>bp <CR>", { silent = false })
 -- vim.keymap.set("n", "L", "<cmd>bn <CR>", { silent = false })
 
@@ -140,6 +142,8 @@ vim.pack.add({
   { src = "https://github.com/nvim-lua/plenary.nvim" },
   { src = "https://github.com/MunifTanjim/nui.nvim"},
   { src = "https://github.com/dstein64/nvim-scrollview" },
+  { src = "https://github.com/Mofiqul/vscode.nvim" },
+  { src = "https://github.com/ibhagwan/fzf-lua" }
 
   -- ignore the status line into tmux
   -- { src = "https://github.com/vimpostor/vim-tpipeline.git" }, 
@@ -297,10 +301,12 @@ require('mason-lspconfig').setup()
 require('mason-tool-installer').setup({
 	ensure_installed = {
 		"pyright",
+		"ts_ls",
 	}
 })
 
 vim.lsp.enable('pyright')
+vim.lsp.enable('ts_ls')
 vim.lsp.config('pyright', {
   settings = {
     python = {
@@ -765,17 +771,14 @@ require "mini.pick".setup({
     end,
   },
 })
-require "nvim-treesitter.configs".setup({ ensure_installed = { "python" },
+require "nvim-treesitter.configs".setup({ ensure_installed = { "python", "typescript", "tsx" },
 	highlight = { enable = true }
 })
 
-vim.keymap.set('n', '<c-t>', ":Pick files<CR>")
--- vim.keymap.set('n', '<leader>h', ":Pick help<CR>")
-vim.keymap.set('n', '<c-f>', ":Pick grep_live<CR>" )
-
- 
+vim.keymap.set('n', '<c-t>', "<cmd>FzfLua files<CR>", { desc = "Find files" })
+-- vim.keymap.set('n', '<leader>h', "<cmd>FzfLua helptags<CR>")
 vim.keymap.set('n', '<c-f>', function()
-  require('mini.pick').builtin.grep_live({}, { source = { cwd = vim.fn.expand('%:p:h') } })
+  require('fzf-lua').live_grep({ cwd = vim.fn.expand('%:p:h') })
 end, { desc = "Grep in current file directory" })
 
 

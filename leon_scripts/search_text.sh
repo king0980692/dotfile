@@ -17,9 +17,9 @@ INITIAL_QUERY="${*:-}"
 # Determine preview window position based on terminal width
 TERM_WIDTH=$(tput cols)
 if [[ $TERM_WIDTH -lt 120 ]]; then
-    PREVIEW_POS="down:70%,border-line,+{2}+3/3,~3"
+    PREVIEW_POS="down:60%:wrap"
 else
-    PREVIEW_POS="right:80%,border-line,+{2}+3/3,~3"
+    PREVIEW_POS="right:60%:wrap"
 fi
 
 TRANSFORMER='
@@ -28,7 +28,7 @@ TRANSFORMER='
 
   if ! [[ -r "$TEMP" ]] || [[ $rg_pat != $(cat "$TEMP") ]]; then
     echo "$rg_pat" > "$TEMP"
-    printf "reload:sleep 0.1; rg --column --line-number --no-heading --color=always --smart-case -- %q || true\n" "$rg_pat"
+    printf "reload:sleep 0.1; rg -j 1 --column --line-number --no-heading --color=always --smart-case -- %q || true\n" "$rg_pat"
   fi
   echo "+search:$fzf_pat"
 '
@@ -66,7 +66,7 @@ fzf --ansi --disabled --query "$INITIAL_QUERY" \
 	  --walker-skip="*log*,.git,node_modules,target" \
     --color "hl:229:underline,hl+:229:underline:reverse" \
     --delimiter : \
-    --preview '[[ -n {2} ]] && bat --style numbers --color=always {1} --highlight-line {2} || bat --style numbers --color=always {1}' \
+    --preview 'sleep 0.2 && file={1}; line={2}; if [[ -n "$line" && "$line" -gt 0 ]] 2>/dev/null; then start=$((line > 5 ? line - 5 : 1)); end=$((line + 95)); bat --style=numbers --color=always --paging=never --highlight-line "$line" --line-range "$start:$end" "$file"; else bat --style=numbers --color=always --paging=never --line-range :100 "$file"; fi' \
     --preview-window "$PREVIEW_POS" \
 	  --reverse \
     --height=75% \

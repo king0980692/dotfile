@@ -25,18 +25,26 @@ if [[ ! -d "$SEARCH_DIR" ]]; then
 fi
 
 # Run fd with fzf for interactive file selection
-selected_file=$(fd --type f --hidden --follow --exclude .git . "$SEARCH_DIR" | \
-    fzf --preview 'bat --style=numbers --color=always --line-range :500 {} 2> /dev/null || cat {}' \
-        --preview-window=right:40%:nowrap \
-        --height=50% \
-        --border \
-        --prompt="Search Files > " \
-        --header="F1: toggle preivew" \
+TERM_WIDTH=$(tput cols)
+if [[ $TERM_WIDTH -lt 120 ]]; then
+    PREVIEW_POS="down:60%:wrap"
+else
+    PREVIEW_POS="right:60%:wrap"
+fi
+
+selected_file=$(fd --type f --hidden --follow --exclude .git -j 1 . "$SEARCH_DIR" | \
+    fzf --preview 'sleep 0.2 && bat --style=numbers --color=always --line-range :100 --paging=never {} 2>/dev/null || head -100 {}' \
+        --preview-window="$PREVIEW_POS:hidden" \
         --bind 'f1:toggle-preview' \
-        --bind 'ctrl-/:toggle-preview' \
+        --height=80% \
+        --reverse \
+        --border \
+        --prompt="Files > " \
+        --header="F1: show preview | Ctrl-/: toggle wrap" \
+        --bind 'ctrl-/:change-preview-window(wrap|nowrap)' \
         --bind 'ctrl-y:execute-silent(echo -n {+} | xclip -selection clipboard)' \
-        --bind 'ctrl-e:execute(${EDITOR:-vim} {} < /dev/tty > /dev/tty)' \
-        --color='hl:yellow,hl+:bright-yellow,fg+:bright-white,bg+:236,border:240')
+        --bind 'ctrl-e:execute(${EDITOR:-nvim} {} < /dev/tty > /dev/tty)' \
+        --color='hl:yellow:underline,hl+:yellow:underline:reverse,fg+:bright-white,bg+:236,border:245')
 
 # If a file was selected, print its path
 if [[ -n "$selected_file" ]]; then
