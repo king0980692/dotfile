@@ -127,6 +127,43 @@ _dotfile_show_notice() {
 }
 [[ $- == *i* ]] && command -v git &>/dev/null && { _dotfile_show_notice; _dotfile_daily_sync; }
 
+# ble.sh: 每天偵測 nightly 是否有新版（背景下載 tarball 比對 hash，不同才就地更新）
+_blesh_daily_update() {
+    local dir="$HOME/.local/share/blesh"
+    local stamp="$HOME/.cache/blesh/last_update" today
+    [[ -f "$dir/ble.sh" ]] || return
+    today=$(date +%Y-%m-%d)
+    mkdir -p "$HOME/.cache/blesh"
+    [[ -r "$stamp" && "$(cat "$stamp" 2>/dev/null)" == "$today" ]] && return
+    echo "$today" > "$stamp"
+    (
+        local notice="$HOME/.cache/blesh/notice"
+        # 目前安裝的版本字串（e.g. 0.4.0-nightly+d69e4d5）
+        local cur; cur=$(sed -n 's/.*_ble_init_version=//p' "$dir/ble.sh" | head -1)
+        [[ "$cur" == *nightly* ]] || exit          # 只自動更新 nightly 安裝（release 版跳過）
+        local tmp; tmp=$(mktemp -d) || exit
+        if curl -fsSL --max-time 60 -o "$tmp/ble.tar.xz" \
+                https://github.com/akinomyoga/ble.sh/releases/download/nightly/ble-nightly.tar.xz \
+             && tar xJf "$tmp/ble.tar.xz" -C "$tmp" 2>/dev/null; then
+            local new; new=$(sed -n 's/.*_ble_init_version=//p' "$tmp/ble-nightly/ble.sh" | head -1)
+            if [[ -n "$new" && "$new" != "$cur" ]]; then
+                # 就地覆蓋（cp -a 不刪除既有的 cache.d/ run/）
+                cp -a "$tmp/ble-nightly/." "$dir/" \
+                    && echo "已更新 $cur -> $new，重開 shell 生效。" > "$notice"
+            fi
+        fi
+        rm -rf "$tmp"
+    ) &
+    disown 2>/dev/null
+}
+
+# 顯示上一次背景更新留下的提示
+_blesh_show_notice() {
+    local n="$HOME/.cache/blesh/notice"
+    [[ -r "$n" ]] && { printf '\e[36m[ble.sh]\e[m %s\n' "$(cat "$n")"; rm -f "$n"; }
+}
+[[ $- == *i* ]] && [[ ${BLE_VERSION-} ]] && command -v curl &>/dev/null && { _blesh_show_notice; _blesh_daily_update; }
+
 # fzf available via mise (no key binding integration — using custom widgets)
 
 if [ -n "$TMUX" ]; then
