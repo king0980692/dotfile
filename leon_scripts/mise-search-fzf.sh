@@ -35,7 +35,11 @@ echo "all" > "$STATUS_FILE"
 
 # 預先獲取所有已安裝的工具列表（只執行一次，大幅提升效能）
 INSTALLED_TOOLS_FILE="/tmp/mise-fzf-installed.$$"
-mise ls --installed 2>/dev/null | awk '{print $1}' | sort -u > "$INSTALLED_TOOLS_FILE"
+# 除了完整名稱,也寫入「去 backend 前綴」與「basename」形式,讓 backend 全名
+# 安裝的工具(如 aqua:openai/codex)能對到 registry 短名(codex)。
+mise ls --installed 2>/dev/null | awk '{print $1}' | while read -r _n; do
+  printf '%s\n%s\n%s\n' "$_n" "${_n#*:}" "${_n##*/}"
+done | sort -u > "$INSTALLED_TOOLS_FILE"
 
 # 清理函數
 cleanup() {

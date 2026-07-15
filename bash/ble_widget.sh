@@ -1,9 +1,13 @@
 function ble/widget/zi_widget {
-   _ZO_DOCTOR=0 zi # zoxide interaction
-  tmux set -g pane-border-format "#(~/.config/tmux/format_path.sh '#{pane_current_path}' '#{pane_title}' '#{pane_active}')#(~/.config/tmux/cur_cmd.sh '#{pane_tty}' '#{pane_title}' '#{pane_current_path}')#[default]"
+  local oldpwd=$PWD
+
+  _ZO_DOCTOR=0 zi 
+
+  if [[ $PWD != "$oldpwd" ]] && declare -f on_chpwd >/dev/null; then
+    on_chpwd
+  fi
+
   ble/widget/redraw-line
-  echo \[$PWD\] 
-  ls --color=auto
 
 }
 ble-bind -m 'vi_imap' -f 'M-c' 'zi_widget'
@@ -56,4 +60,3 @@ ble-bind -m 'vi_imap' -f 'C-f' 'fzf_grep_widget'
 
 
 ble-bind -f 'C-g' edit-and-execute-command
-

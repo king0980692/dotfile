@@ -25,7 +25,15 @@ if [[ "$tool" =~ ^[a-z]+:(.+)$ ]]; then
 fi
 
 # 使用 mise ls 檢查是否已安裝
-install_info=$(mise ls --installed 2>/dev/null | grep -E "^${tool_base}\s|^${tool_short}\s" | head -1)
+# 正規化名稱比對:backend 全名(如 aqua:openai/codex)也要能對到
+# registry 短名(codex)。把已安裝名字拆成 全名 / 去前綴 / basename 三種比。
+install_info=$(mise ls --installed 2>/dev/null | awk -v t="$tool_base" -v s="$tool_short" '
+  {
+    name=$1
+    nop=name; sub(/^[a-z]+:/, "", nop)      # 去 backend 前綴: aqua:openai/codex -> openai/codex
+    base=nop; sub(/.*\//, "", base)          # basename:            openai/codex -> codex
+    if (name==t || nop==t || base==t || name==s || nop==s || base==s) { print; exit }
+  }')
 
 if [ -n "$install_info" ]; then
   # 檢查安裝來源

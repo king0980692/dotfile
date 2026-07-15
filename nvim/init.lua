@@ -111,6 +111,10 @@ vim.pack.add({
   { src = 'https://github.com/mason-org/mason.nvim' },
 	{ src = 'https://github.com/mason-org/mason-lspconfig.nvim' },
 	{ src = 'https://github.com/WhoIsSethDaniel/mason-tool-installer.nvim' },
+	{ src = "https://github.com/mfussenegger/nvim-dap" },
+	{ src = "https://github.com/rcarriga/nvim-dap-ui" },
+	{ src = "https://github.com/nvim-neotest/nvim-nio" },
+	{ src = "https://github.com/theHamsta/nvim-dap-virtual-text" },
 
 	{ src = "https://github.com/romgrk/barbar.nvim"},
 	{ src = 'https://github.com/nvim-tree/nvim-web-devicons'},
@@ -166,9 +170,9 @@ require('scrollview').setup({
 })
 
 
-vim.keymap.set("n", "<leader>e", "<Cmd>Neotree left toggle<CR>")
-vim.keymap.set("n", "<C-b>", "<Cmd>Neotree left toggle reveal_force_cwd<CR>")
-vim.keymap.set("n", "<leader>E", "<Cmd>Neotree right toggle<CR>")
+vim.keymap.set("n", "<leader>E", "<Cmd>Neotree left toggle<CR>")
+vim.keymap.set("n", "<C-b>", "<Cmd>Neotree right toggle reveal_force_cwd<CR>")
+vim.keymap.set("n", "<leader>e", "<Cmd>Neotree right toggle<CR>")
 
 require("neo-tree").setup({
   close_if_last_window = true,
@@ -300,11 +304,511 @@ require('mason-tool-installer').setup({
 	ensure_installed = {
 		"pyright",
 		"ts_ls",
+		"jsonls",
+		"js-debug-adapter",
 	}
 })
 
+local dap = require("dap")
+local dapui = require("dapui")
+
+local js_debug_path = vim.fn.stdpath("data") .. "/mason/packages/js-debug-adapter/js-debug/src/dapDebugServer.js"
+
+dap.adapters["pwa-node"] = {
+	type = "server",
+	host = "127.0.0.1",
+	port = "${port}",
+	executable = {
+		command = "node",
+		args = { js_debug_path, "${port}" },
+	},
+}
+
+local node_launch_config = {
+	type = "pwa-node",
+	request = "launch",
+	name = "Launch current file (Node)",
+	program = "${file}",
+	cwd = "${workspaceFolder}",
+	stopOnEntry = true,
+	console = "integratedTerminal",
+	terminalWinCmd = "botright vertical 80new",
+	sourceMaps = true,
+	skipFiles = { "<node_internals>/**" },
+}
+
+local tsx_launch_config = {
+	type = "pwa-node",
+	request = "launch",
+	name = "Launch current file (tsx)",
+	runtimeExecutable = "npx",
+	runtimeArgs = { "tsx" },
+	program = "${file}",
+	cwd = "${workspaceFolder}",
+	stopOnEntry = true,
+	console = "integratedTerminal",
+	terminalWinCmd = "botright vertical 80new",
+	sourceMaps = true,
+	skipFiles = { "<node_internals>/**" },
+}
+
+for _, filetype in ipairs({ "javascript", "javascriptreact" }) do
+	dap.configurations[filetype] = {
+		vim.deepcopy(node_launch_config),
+		{
+			type = "pwa-node",
+			request = "attach",
+			name = "Attach to process",
+			processId = require("dap.utils").pick_process,
+			cwd = "${workspaceFolder}",
+			sourceMaps = true,
+			skipFiles = { "<node_internals>/**" },
+		},
+		{
+			type = "pwa-node",
+			request = "attach",
+			name = "Attach to :9229",
+			address = "localhost",
+			port = 9229,
+			cwd = "${workspaceFolder}",
+			sourceMaps = true,
+			skipFiles = { "<node_internals>/**" },
+		},
+	}
+end
+
+for _, filetype in ipairs({ "typescript", "typescriptreact" }) do
+	dap.configurations[filetype] = {
+		vim.deepcopy(tsx_launch_config),
+		{
+			type = "pwa-node",
+			request = "attach",
+			name = "Attach to process",
+			processId = require("dap.utils").pick_process,
+			cwd = "${workspaceFolder}",
+			sourceMaps = true,
+			skipFiles = { "<node_internals>/**" },
+		},
+		{
+			type = "pwa-node",
+			request = "attach",
+			name = "Attach to :9229",
+			address = "localhost",
+			port = 9229,
+			cwd = "${workspaceFolder}",
+			sourceMaps = true,
+			skipFiles = { "<node_internals>/**" },
+		},
+	}
+end
+
+dap.defaults.fallback.terminal_win_cmd = "botright vnew"
+
+dapui.setup({
+	layouts = {
+		{
+			elements = {
+				{ id = "stacks", size = 0.55 },
+				{ id = "watches", size = 0.45 },
+			},
+			size = 24,
+			position = "left",
+		},
+		{
+			elements = {
+				{ id = "console", size = 0.35 },
+				{ id = "repl", size = 0.65 },
+			},
+			size = 14,
+			position = "bottom",
+		},
+	},
+})
+require("nvim-dap-virtual-text").setup()
+
+vim.api.nvim_create_autocmd("FileType", {
+	group = vim.api.nvim_create_augroup("DapUiWrap", { clear = true }),
+	pattern = { "dapui_console", "dapui_watches", "dap-repl", "dap-float" },
+	callback = function()
+		vim.opt_local.wrap = true
+		vim.opt_local.linebreak = true
+	end,
+})
+
+vim.g.dap_mode_active = false
+local dap_locked_buffers = {}
+local clear_dap_session_keymaps
+local unlock_dap_buffers
+local dap_auto_zoomed_tmux = false
+
+local function tmux_current_pane()
+	return vim.env.TMUX_PANE
+end
+
+local function tmux_is_zoomed()
+	local pane = tmux_current_pane()
+	if pane == nil or pane == "" then
+		return false
+	end
+
+	local result = vim.system({ "tmux", "display-message", "-p", "-t", pane, "#{window_zoomed_flag}" }, { text = true }):wait()
+	return result.code == 0 and vim.trim(result.stdout or "") == "1"
+end
+
+local function enter_dap_tmux_zoom()
+	local pane = tmux_current_pane()
+	if pane == nil or pane == "" or tmux_is_zoomed() then
+		return
+	end
+
+	local result = vim.system({ "tmux", "resize-pane", "-Z", "-t", pane }, { text = true }):wait()
+	if result.code == 0 then
+		dap_auto_zoomed_tmux = true
+	end
+end
+
+local function leave_dap_tmux_zoom()
+	local pane = tmux_current_pane()
+	if not dap_auto_zoomed_tmux or pane == nil or pane == "" then
+		return
+	end
+
+	vim.system({ "tmux", "resize-pane", "-Z", "-t", pane }, { text = true }):wait()
+	dap_auto_zoomed_tmux = false
+end
+
+vim.api.nvim_create_user_command("DapSessionQuit", function()
+	vim.g.dap_mode_active = false
+	if dap.session() ~= nil then
+		dap.terminate()
+	else
+		clear_dap_session_keymaps()
+		clear_dap_mode_window_keymaps()
+		unlock_dap_buffers()
+		leave_dap_tmux_zoom()
+		dapui.close()
+	end
+end, {})
+
+vim.cmd([[cnoreabbrev <expr> q getcmdtype() == ':' && getcmdline() ==# 'q' && luaeval('vim.g.dap_mode_active') ? 'DapSessionQuit' : 'q']])
+
+local dap_session_keymaps = {
+	["<leader>o"] = { dap.step_out, "DAP step out" },
+	["<leader>B"] = {
+		function()
+			dap.set_breakpoint(vim.fn.input("Breakpoint condition: "))
+		end,
+		"DAP conditional breakpoint",
+	},
+	["<leader>u"] = { dapui.toggle, "DAP UI toggle" },
+	["<leader>t"] = { dap.terminate, "DAP terminate" },
+	["<leader>p"] = { dap.repl.toggle, "DAP REPL toggle" },
+}
+
+local dap_mode_window_keymaps = {
+	["<M-h>"] = "h",
+	["<M-j>"] = "j",
+	["<M-k>"] = "k",
+	["<M-l>"] = "l",
+}
+
+local function set_dap_mode_window_keymaps()
+	for lhs, direction in pairs(dap_mode_window_keymaps) do
+		vim.keymap.set("n", lhs, function()
+			vim.cmd("wincmd " .. direction)
+		end, { silent = true, desc = "DAP local window move" })
+		vim.keymap.set("i", lhs, function()
+			vim.cmd("stopinsert")
+			vim.cmd("wincmd " .. direction)
+		end, { silent = true, desc = "DAP local window move" })
+	end
+end
+
+local function clear_dap_mode_window_keymaps()
+	for lhs, _ in pairs(dap_mode_window_keymaps) do
+		pcall(vim.keymap.del, "n", lhs)
+		pcall(vim.keymap.del, "i", lhs)
+	end
+end
+
+local function get_visual_selection_text()
+	local start_pos = vim.fn.getpos("'<")
+	local end_pos = vim.fn.getpos("'>")
+	local start_row, start_col = start_pos[2], start_pos[3]
+	local end_row, end_col = end_pos[2], end_pos[3]
+
+	if start_row == 0 or end_row == 0 then
+		return nil
+	end
+
+	if start_row > end_row or (start_row == end_row and start_col > end_col) then
+		start_row, end_row = end_row, start_row
+		start_col, end_col = end_col, start_col
+	end
+
+	local lines = vim.api.nvim_buf_get_lines(0, start_row - 1, end_row, false)
+	if #lines == 0 then
+		return nil
+	end
+
+	lines[1] = string.sub(lines[1], start_col)
+	lines[#lines] = string.sub(lines[#lines], 1, end_col)
+	return table.concat(lines, "\n")
+end
+
+local function add_watch_expression(expr)
+	local text = expr and vim.trim(expr) or ""
+	if text == "" then
+		return
+	end
+
+	require("dapui.elements.watches").add(text)
+	if vim.g.dap_mode_active then
+		dapui.open()
+	end
+end
+
+local function dap_next_or_search_next()
+	if vim.v.hlsearch == 1 and vim.fn.getreg("/") ~= "" then
+		vim.cmd("normal! n")
+		return
+	end
+
+	dap.step_over()
+end
+
+local function is_dap_code_buffer(bufnr)
+	if not vim.api.nvim_buf_is_valid(bufnr) then
+		return false
+	end
+
+	return vim.bo[bufnr].buftype == "" and vim.api.nvim_buf_get_name(bufnr) ~= ""
+end
+
+local function lock_dap_buffer(bufnr)
+	if not is_dap_code_buffer(bufnr) then
+		return
+	end
+
+	if dap_locked_buffers[bufnr] == nil then
+		dap_locked_buffers[bufnr] = {
+			modifiable = vim.bo[bufnr].modifiable,
+			readonly = vim.bo[bufnr].readonly,
+		}
+	end
+
+	vim.bo[bufnr].modifiable = false
+	vim.bo[bufnr].readonly = true
+
+	local opts = { buffer = bufnr, silent = true }
+	vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR><Esc>", vim.tbl_extend("force", opts, { desc = "DAP clear search" }))
+	vim.keymap.set("n", "n", dap_next_or_search_next, vim.tbl_extend("force", opts, { desc = "DAP next / search next" }))
+	vim.keymap.set("n", "s", dap.step_into, vim.tbl_extend("force", opts, { desc = "DAP step into" }))
+	vim.keymap.set("n", "c", dap.continue, vim.tbl_extend("force", opts, { desc = "DAP continue" }))
+	vim.keymap.set("n", "b", dap.toggle_breakpoint, vim.tbl_extend("force", opts, { desc = "DAP breakpoint" }))
+	vim.keymap.set("n", "L", dap.focus_frame, vim.tbl_extend("force", opts, { desc = "DAP focus current line" }))
+end
+
+unlock_dap_buffers = function()
+	for bufnr, state in pairs(dap_locked_buffers) do
+		if vim.api.nvim_buf_is_valid(bufnr) then
+			vim.bo[bufnr].modifiable = state.modifiable
+			vim.bo[bufnr].readonly = state.readonly
+			pcall(vim.keymap.del, "n", "n", { buffer = bufnr })
+			pcall(vim.keymap.del, "n", "<Esc>", { buffer = bufnr })
+			pcall(vim.keymap.del, "n", "s", { buffer = bufnr })
+			pcall(vim.keymap.del, "n", "c", { buffer = bufnr })
+			pcall(vim.keymap.del, "n", "b", { buffer = bufnr })
+			pcall(vim.keymap.del, "n", "L", { buffer = bufnr })
+		end
+	end
+
+	dap_locked_buffers = {}
+end
+
+local function lock_all_dap_code_buffers()
+	for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+		lock_dap_buffer(bufnr)
+	end
+end
+
+vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
+	group = vim.api.nvim_create_augroup("DapSessionBufferLock", { clear = true }),
+	callback = function(args)
+		if vim.g.dap_mode_active then
+			lock_dap_buffer(args.buf)
+		end
+	end,
+})
+
+local function set_dap_session_keymaps()
+	for lhs, rhs in pairs(dap_session_keymaps) do
+		vim.keymap.set("n", lhs, rhs[1], { desc = rhs[2], silent = true })
+	end
+end
+
+clear_dap_session_keymaps = function()
+	for lhs, _ in pairs(dap_session_keymaps) do
+		pcall(vim.keymap.del, "n", lhs)
+	end
+end
+
+dap.listeners.after.event_initialized["dapui_config"] = function()
+	vim.g.dap_mode_active = true
+	set_dap_session_keymaps()
+	set_dap_mode_window_keymaps()
+	lock_all_dap_code_buffers()
+	enter_dap_tmux_zoom()
+	dapui.open()
+end
+dap.listeners.before.event_terminated["dapui_config"] = function()
+	if not vim.g.dap_mode_active then
+		clear_dap_session_keymaps()
+		clear_dap_mode_window_keymaps()
+		unlock_dap_buffers()
+		leave_dap_tmux_zoom()
+		dapui.close()
+	end
+end
+dap.listeners.before.event_exited["dapui_config"] = function()
+	if not vim.g.dap_mode_active then
+		clear_dap_session_keymaps()
+		clear_dap_mode_window_keymaps()
+		unlock_dap_buffers()
+		leave_dap_tmux_zoom()
+		dapui.close()
+	end
+end
+dap.listeners.before.disconnect["dapui_config"] = function()
+	vim.g.dap_mode_active = false
+	clear_dap_session_keymaps()
+	clear_dap_mode_window_keymaps()
+	unlock_dap_buffers()
+	leave_dap_tmux_zoom()
+	dapui.close()
+end
+
+local function dap_continue_with_picker()
+	if dap.session() ~= nil then
+		dap.continue()
+		return
+	end
+
+	if vim.g.dap_mode_active then
+		dap.run_last()
+		return
+	end
+
+	local configs = dap.configurations[vim.bo.filetype] or {}
+	if #configs <= 1 then
+		dap.continue()
+		return
+	end
+
+	MiniPick.ui_select(configs, {
+		prompt = "Debug configuration",
+		format_item = function(item)
+			return item.name
+		end,
+	}, function(choice)
+		if choice ~= nil then
+			dap.run(choice)
+		end
+	end, {
+		window = {
+			config = {
+				width = math.max(50, math.floor(vim.o.columns * 0.3)),
+				height = 7,
+			},
+		},
+	})
+end
+
+vim.keymap.set("n", "<F5>", dap_continue_with_picker, { desc = "DAP continue" })
+vim.keymap.set("n", "<leader>b", dap.toggle_breakpoint, { desc = "DAP toggle breakpoint" })
+vim.keymap.set("n", "<leader>w", function()
+	add_watch_expression(vim.fn.expand("<cword>"))
+end, { desc = "DAP add watch" })
+vim.keymap.set("x", "w", function()
+	add_watch_expression(get_visual_selection_text())
+end, { desc = "DAP add watch from selection" })
+
+-- .jsonl 用獨立的 jsonl filetype（避免 jsonls 把多筆 JSON 當成一份而報錯）
+vim.filetype.add({ extension = { jsonl = "jsonl" } })
+-- 讓 json 的 treesitter parser 也負責 jsonl 的上色
+pcall(vim.treesitter.language.register, "json", "jsonl")
+
 vim.lsp.enable('pyright')
 vim.lsp.enable('ts_ls')
+vim.lsp.enable('jsonls')
+-- jsonls (vscode-json-language-server, node) 只 attach .json/.jsonc
+vim.lsp.config('jsonls', {
+	on_attach = on_attach,
+})
+
+-- ============ JSON / JSONL pretty view (使用 jq) ============
+-- 對整個 buffer 套用 jq filter（in-place 修改）
+local function jq_filter_buffer(jq_args)
+	if vim.fn.executable("jq") == 0 then
+		vim.notify("找不到 jq 執行檔", vim.log.levels.ERROR)
+		return
+	end
+	local input = table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
+	local cmd = { "jq" }
+	vim.list_extend(cmd, jq_args or { "." })
+	local out = vim.fn.systemlist(cmd, input)
+	if vim.v.shell_error ~= 0 then
+		vim.notify("jq 失敗: " .. table.concat(out, "\n"), vim.log.levels.ERROR)
+		return
+	end
+	vim.api.nvim_buf_set_lines(0, 0, -1, false, out)
+end
+
+-- 把「當前這一行」pretty 印在浮動視窗（不改動原檔，適合 jsonl 逐行看）
+local function jq_preview_line()
+	if vim.fn.executable("jq") == 0 then
+		vim.notify("找不到 jq 執行檔", vim.log.levels.ERROR)
+		return
+	end
+	local out = vim.fn.systemlist({ "jq", "." }, vim.api.nvim_get_current_line())
+	if vim.v.shell_error ~= 0 then
+		vim.notify("jq 失敗: " .. table.concat(out, "\n"), vim.log.levels.ERROR)
+		return
+	end
+	local buf = vim.api.nvim_create_buf(false, true)
+	vim.api.nvim_buf_set_lines(buf, 0, -1, false, out)
+	vim.bo[buf].filetype = "json"
+	local width = math.min(100, vim.o.columns - 4)
+	local height = math.min(#out, vim.o.lines - 4)
+	local win = vim.api.nvim_open_win(buf, true, {
+		relative = "editor",
+		row = math.floor((vim.o.lines - height) / 2),
+		col = math.floor((vim.o.columns - width) / 2),
+		width = width,
+		height = height,
+		style = "minimal",
+		border = "rounded",
+		title = " jq preview ",
+	})
+	vim.wo[win].wrap = false
+	for _, k in ipairs({ "q", "<Esc>" }) do
+		vim.keymap.set("n", k, "<cmd>close<CR>", { buffer = buf, nowait = true })
+	end
+end
+
+vim.api.nvim_create_user_command("JqPretty", function() jq_filter_buffer({ "." }) end, {})
+vim.api.nvim_create_user_command("JqCompact", function() jq_filter_buffer({ "-c", "." }) end, {})
+vim.api.nvim_create_user_command("JqLine", jq_preview_line, {})
+
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = { "json", "jsonc", "jsonl" },
+	callback = function(ev)
+		local opt = { buffer = ev.buf }
+		vim.keymap.set("n", "<leader>jp", jq_preview_line, vim.tbl_extend("force", opt, { desc = "jq: 預覽當前行 (float)" }))
+		vim.keymap.set("n", "<leader>jq", "<cmd>JqPretty<CR>", vim.tbl_extend("force", opt, { desc = "jq: 整個 buffer pretty" }))
+		vim.keymap.set("n", "<leader>jc", "<cmd>JqCompact<CR>", vim.tbl_extend("force", opt, { desc = "jq: 整個 buffer compact" }))
+	end,
+})
 vim.lsp.config('pyright', {
   settings = {
     python = {
@@ -326,8 +830,8 @@ vim.lsp.config('pyright', {
 
 
 -- require()
--- vim.cmd("colorscheme vague")
-vim.cmd("colorscheme vscode")
+vim.cmd("colorscheme vague")
+-- vim.cmd("colorscheme vscode")
 vim.api.nvim_set_hl(0, "pmenu", {
     -- 將背景顏色 (bg) 設定為 nil 或 false 以實現透明
     bg = nil, 
@@ -769,7 +1273,7 @@ require "mini.pick".setup({
     end,
   },
 })
-require "nvim-treesitter.configs".setup({ ensure_installed = { "python", "typescript", "tsx" },
+require "nvim-treesitter.configs".setup({ ensure_installed = { "python", "typescript", "tsx", "json" },
 	highlight = { enable = true }
 })
 
@@ -862,18 +1366,17 @@ if vim.env.SSH_TTY then
     end
   end
 
-  vim.g.clipboard = {
-    name = "OSC 52 with register sync",
-    copy = {
-      ["+"] = copy_reg("+"),
-      ["*"] = copy_reg("*"),
-    },
-    -- Do NOT use OSC52 paste, just use internal registers paste = {
-      ["+"] = function() return vim.fn.getreg('+'), 'v' end,
-      ["*"] = function() return vim.fn.getreg('*'), 'v' end,
-    
-  }
+	vim.g.clipboard = {
+		name = "OSC 52 with register sync",
+		copy = {
+			["+"] = copy_reg("+"),
+			["*"] = copy_reg("*"),
+		},
+		paste = {
+			["+"] = function() return vim.fn.getreg("+"), "v" end,
+			["*"] = function() return vim.fn.getreg("*"), "v" end,
+		},
+	}
 
-  vim.o.clipboard = "unnamedplus"
-  end
-
+	vim.o.clipboard = "unnamedplus"
+end

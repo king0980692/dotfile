@@ -63,6 +63,12 @@ fi
 # Split path into components
 IFS='/' read -ra COMPONENTS <<< "$PATH_DISPLAY"
 
+# Count non-empty components
+NON_EMPTY=0
+for c in "${COMPONENTS[@]}"; do
+    [[ -n "$c" ]] && ((NON_EMPTY++))
+done
+
 # Get icon for last component (the actual directory)
 LAST_COMPONENT="${COMPONENTS[-1]}"
 DIR_ICON=$(get_icon "$LAST_COMPONENT")
@@ -71,8 +77,12 @@ DIR_ICON=$(get_icon "$LAST_COMPONENT")
 declare -a PATH_PARTS
 for COMPONENT in "${COMPONENTS[@]}"; do
     [[ -z "$COMPONENT" ]] && continue
-    
+
     if [[ "$COMPONENT" == "~" ]]; then
+        # Skip "Home" when path has more than 3 components
+        if [[ $NON_EMPTY -gt 3 ]]; then
+            continue
+        fi
         PATH_PARTS+=("Home")
     else
         PATH_PARTS+=("$COMPONENT")
@@ -97,7 +107,7 @@ fi
 
 # File display is handled by cur_cmd.sh, so we only output the directory path here
 if [[ "$IS_ACTIVE" == "1" ]]; then
-    printf "#[align=right][ #[reverse,bold]%s#[default]\n" "#[fg=colour213]$FORMATTED#[fg=green]#[default] ]"
+    printf "#[align=right][ #[underscore,bold]%s#[default]\n" "#[fg=colour213]$FORMATTED#[fg=green]#[default] ]"
 else
     echo "#[align=right][ #[fg=colour214]$FORMATTED#[fg=green] ]"
 fi
