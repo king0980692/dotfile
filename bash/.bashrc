@@ -108,10 +108,17 @@ _mise_outdated_check() {
     disown 2>/dev/null
 }
 
-# 顯示 mise 背景檢查留下的提示
+# 顯示 mise 過期提示，並互動詢問是否直接升級（預設 Y；Enter 就升級）
 _mise_show_notice() {
     local n="$HOME/.cache/mise/notice"
-    [[ -r "$n" ]] && { printf '\e[35m[mise]\e[m %s\n' "$(cat "$n")"; rm -f "$n"; }
+    [[ -r "$n" ]] || return
+    printf '\e[35m[mise]\e[m %s\n' "$(cat "$n")"
+    rm -f "$n"
+    [[ $- == *i* ]] || return                    # 非互動 shell 不詢問
+    local ans
+    read -r -p $'\e[35m[mise]\e[m 現在升級全部? [Y/n] ' ans
+    [[ "$ans" == [nN]* ]] && return              # 只有明確 n/no 才跳過
+    "$HOME/.local/bin/mise" upgrade
 }
 [[ $- == *i* ]] && command -v mise &>/dev/null && { _mise_show_notice; _mise_daily_update; _mise_outdated_check; }
 
