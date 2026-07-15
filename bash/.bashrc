@@ -48,6 +48,9 @@ ta() {
         tmux attach -t "$(tmux list-sessions -F '#{session_activity} #{session_name}' | grep -v ' popup$' | sort -rn | head -n 1 | cut -d' ' -f2)"
     fi
 }
+ha() {
+  herdr
+}
 
 # Cache eval output — only regenerate when binary changes
 _cached_eval() {
@@ -86,7 +89,31 @@ _mise_daily_update() {
         >"$HOME/.cache/mise/self_update.log" 2>&1 ) &
     disown 2>/dev/null
 }
-[[ $- == *i* ]] && command -v mise &>/dev/null && _mise_daily_update
+# mise: 每天背景檢查工具是否有新版（只提醒，不自動升級，避免破壞可重現性）
+_mise_outdated_check() {
+    local stamp="$HOME/.cache/mise/last_outdated" today
+    today=$(date +%Y-%m-%d)
+    mkdir -p "$HOME/.cache/mise"
+    [[ -r "$stamp" && "$(cat "$stamp" 2>/dev/null)" == "$today" ]] && return
+    echo "$today" > "$stamp"
+    (
+        local notice="$HOME/.cache/mise/notice" out n names
+        out=$("$HOME/.local/bin/mise" outdated 2>/dev/null | grep -v '^[[:space:]]*$')
+        [[ -z "$out" ]] && { rm -f "$notice"; exit; }        # 全部最新（或 mise 失敗）：清掉舊提示
+        n=$(printf '%s\n' "$out" | grep -c .)
+        names=$(printf '%s\n' "$out" | awk '{print $1}' | head -6 | paste -sd, - | sed 's/,/, /g')
+        (( n > 6 )) && names="$names …"
+        echo "$n 個工具可升級: $names（詳情: mise outdated；升級: mise upgrade）" > "$notice"
+    ) &
+    disown 2>/dev/null
+}
+
+# 顯示 mise 背景檢查留下的提示
+_mise_show_notice() {
+    local n="$HOME/.cache/mise/notice"
+    [[ -r "$n" ]] && { printf '\e[35m[mise]\e[m %s\n' "$(cat "$n")"; rm -f "$n"; }
+}
+[[ $- == *i* ]] && command -v mise &>/dev/null && { _mise_show_notice; _mise_daily_update; _mise_outdated_check; }
 
 # dotfile: 每天偵測遠端是否有更新（背景 fetch，安全不覆蓋本地修改）
 _dotfile_daily_sync() {
