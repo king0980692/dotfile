@@ -80,6 +80,10 @@ case "$tool" in
   codex)    out+=(resume "$sid") ;;
 esac
 
+printf '%s pane=%s tool=%s sid=%s cwd=%s\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$HERDR_PANE_ID" "$tool" "$sid" "$PWD" \
+  >> "$HOME/.config/herdr/resurrect/restore.log" 2>/dev/null
+
 printf 'RESUME'
 for a in "${out[@]}"; do printf ' %q' "$a"; done
 printf '\n'
