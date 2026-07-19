@@ -14,7 +14,7 @@ set -uo pipefail
 [ -n "${HERDR_PANE_ID:-}" ] || exit 0
 [ -z "${HERDR_NO_RESURRECT:-}" ] || exit 0
 
-AGENTS="$HOME/.config/herdr/resurrect/agents.json"
+AGENTS="${HERDR_RESURRECT_AGENTS:-$HOME/.config/herdr/resurrect/agents.json}"
 [ -f "$AGENTS" ] || exit 0
 command -v jq >/dev/null 2>&1 || exit 0
 command -v herdr >/dev/null 2>&1 || exit 0
@@ -41,15 +41,45 @@ entry="$(jq -c --arg wl "$wlabel" --arg pp "$ppub" --arg cwd "$PWD" '
 touch "$marker" 2>/dev/null
 [ -n "$entry" ] || exit 0
 
-# only claude for now
-[ "$(printf '%s' "$entry" | jq -r '.tool')" = "claude" ] || exit 0
+tool="$(printf '%s' "$entry" | jq -r '.tool')"
+sid="$(printf '%s'  "$entry" | jq -r '.session_id')"
+case "$tool" in claude|opencode|codex) ;; *) exit 0 ;; esac
 
-# reconstruct argv with `--resume <session_id>` and emit shell-quoted
-cmd="$(printf '%s' "$entry" | jq -r '
-  .session_id as $sid
-  | (.argv // ["claude"]) as $a
-  | ($a | index("--resume")) as $i
-  | (if $i == null then $a + ["--resume", $sid]
-     else $a[0:$i+1] + [$sid] + $a[$i+1:] end)
-  | @sh')"
-[ -n "$cmd" ] && printf 'RESUME %s\n' "$cmd"
+# argv -> bash array; strip any existing session/resume tokens for this tool,
+# then re-append the canonical resume form. Preserves the user's other flags.
+mapfile -t A < <(printf '%s' "$entry" | jq -r '.argv[]?')
+[ "${#A[@]}" -gt 0 ] || A=("$tool")
+bin="${A[0]}"
+flags=(); i=1
+while [ "$i" -lt "${#A[@]}" ]; do
+  tok="${A[$i]}"
+  case "$tool" in
+    claude)
+      case "$tok" in
+        --resume) i=$((i+1)); [ "$i" -lt "${#A[@]}" ] && [[ "${A[$i]}" != -* ]] && i=$((i+1)); continue ;;
+        --resume=*) i=$((i+1)); continue ;;
+      esac ;;
+    opencode)
+      case "$tok" in
+        -s|--session) i=$((i+1)); [ "$i" -lt "${#A[@]}" ] && [[ "${A[$i]}" != -* ]] && i=$((i+1)); continue ;;
+        --session=*) i=$((i+1)); continue ;;
+      esac ;;
+    codex)
+      case "$tok" in
+        resume) i=$((i+1)); [ "$i" -lt "${#A[@]}" ] && [[ "${A[$i]}" != -* ]] && i=$((i+1)); continue ;;
+      esac ;;
+  esac
+  flags+=("$tok"); i=$((i+1))
+done
+
+out=("$bin")
+[ "${#flags[@]}" -gt 0 ] && out+=("${flags[@]}")
+case "$tool" in
+  claude)   out+=(--resume "$sid") ;;
+  opencode) out+=(-s "$sid") ;;
+  codex)    out+=(resume "$sid") ;;
+esac
+
+printf 'RESUME'
+for a in "${out[@]}"; do printf ' %q' "$a"; done
+printf '\n'
