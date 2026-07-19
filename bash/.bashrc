@@ -75,6 +75,16 @@ _cached_eval() {
 _cached_eval mise "$HOME/.local/bin/mise" "$HOME/.local/bin/mise" activate bash
 # ^^^ packages installed by mise must come after this line
 
+# herdr-assistant-resurrect: in a pane restored after reboot, resume its agent.
+# restore-check.sh matches this pane to a saved session and, once per boot, emits
+# `RESUME <argv>` which we exec (claude --resume <id>). No-op otherwise; disable
+# with HERDR_NO_RESURRECT=1.
+if [[ $- == *i* ]] && [[ -n "${HERDR_ENV:-}" ]]; then
+  _hr_out="$("$HOME/.config/herdr/scripts/resurrect/restore-check.sh" 2>/dev/null || true)"
+  [[ "$_hr_out" == RESUME\ * ]] && eval "exec ${_hr_out#RESUME }"
+  unset _hr_out
+fi
+
 # mise: 每天自動 self-update（背景執行，不阻塞開 shell；同一天多個 shell 只跑一次）
 _mise_daily_update() {
     local stamp="$HOME/.cache/mise/last_self_update" today

@@ -52,3 +52,21 @@ karabiner/automatic_backups/
 
 !ghostty/
 !ghostty/**
+
+# herdr: track config + scripts + our local plugin only. Everything else in
+# herdr/ (logs, sockets, session*.json, plugins.json, release-notes, the
+# auto-installed github/config plugins, sessions/, the resurrect/ output dir)
+# stays ignored by the default `*` rule.
+!herdr/
+!herdr/config.toml
+!herdr/scripts/
+!herdr/scripts/**
+!herdr/plugins/
+!herdr/plugins/local/
+!herdr/plugins/local/**
+# ...but not python bytecode
+herdr/scripts/**/__pycache__/
+
+# systemd user units (herdr-resurrect save timer)
+!systemd/
+!systemd/**

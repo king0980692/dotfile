@@ -1,0 +1,32 @@
+# herdr-workspace-popup — a local, no-build plugin whose only job is to open the
+# existing workspace_switcher.sh in a FLOATING popup pane.
+#
+# Why a plugin: stable herdr 0.7.4 has no `type = "popup"` for [[keys.command]]
+# keybindings (that's preview-only). But PLUGIN panes DO support
+# `placement = "popup"` on stable. So we register a plugin with a single pane
+# whose command is the switcher, and open it via `herdr plugin pane open
+# --placement popup`. The switcher's Enter -> `herdr workspace focus` is a live
+# API switch; when it exits the popup closes.
+id = "herdr-workspace-popup"
+name = "herdr-workspace-popup"
+version = "0.1.0"
+description = "Live workspace switcher/manager in a floating popup pane."
+min_herdr_version = "0.7.0"
+platforms = ["linux", "macos"]
+
+# The popup pane. `placement = "popup"` makes it float over the session without
+# touching the tiled layout. The command is the existing switcher script (absolute
+# path so herdr can spawn it regardless of the plugin's cwd).
+[[panes]]
+id = "workspace-switcher"
+title = "Workspaces"
+placement = "popup"
+command = ["env", "WS_LIVE=1", "bash", "/home/lychang/.config/herdr/scripts/workspace_switcher.sh"]
+
+# Action that summons the popup (invoked from the M-s keybinding in config.toml).
+[[actions]]
+id = "open-workspace-popup"
+platforms = ["linux", "macos"]
+title = "Workspace switcher (popup)"
+description = "Open the live workspace switcher/manager in a floating popup pane."
+command = ["bash", "/home/lychang/.config/herdr/plugins/local/herdr-workspace-popup/open.sh"]

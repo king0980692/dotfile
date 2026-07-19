@@ -1,0 +1,6 @@
+[Unit]
+Description=herdr-assistant-resurrect: snapshot agent sessions to agents.json
+
+[Service]
+Type=oneshot
+ExecStart=%h/.config/herdr/scripts/resurrect/save.sh

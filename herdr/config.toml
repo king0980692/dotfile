@@ -1,0 +1,155 @@
+onboarding = false
+
+[theme]
+name = "gruvbox"
+auto_switch = false
+
+# Make the mouse / copy selection highlight obvious (vesper's default is faint).
+# Matches your tmux magenta copy-mode style. Tokens: selection_background,
+# selection_foreground, selection_blocker, selection_cursor.
+[theme.custom]
+selection_background = "#d75fff"
+selection_foreground = "#000000"
+
+# ---------------------------------------------------------------------------
+# Keybindings mapped from ~/.config/tmux/tmux.conf (prefix = M-q, vi mode)
+# Each action lists the tmux-prefix form first, then the no-prefix M- chord
+# you already use daily. Reload after edits: herdr server reload-config
+# ---------------------------------------------------------------------------
+[keys]
+# tmux: unbind C-b ; set -g prefix M-q
+prefix = "alt+q"
+
+# Pane focus  (tmux prefix h/j/k/l  +  no-prefix M-h/j/k/l vim-navigator)
+focus_pane_left  = ["prefix+h", "alt+h"]
+focus_pane_down  = ["prefix+j", "alt+j"]
+focus_pane_up    = ["prefix+k", "alt+k"]
+focus_pane_right = ["prefix+l", "alt+l"]
+
+# Splits.  herdr split_vertical = split RIGHT (side-by-side, tmux `%` / M-5)
+#          herdr split_horizontal = split DOWN  (stacked,       tmux `"` / M-')
+split_vertical   = ["prefix+percent", "alt+5", "prefix+v"]
+split_horizontal = ["prefix+shift+quote", "alt+quote", "prefix+minus"]
+
+# Zoom / kill  (tmux prefix z / prefix x)
+zoom       = "prefix+z"
+close_pane = "prefix+x"
+
+# Copy mode  (tmux prefix [ , vi mode)
+copy_mode = "prefix+["
+
+# Tabs == tmux windows  (prefix c new, n/p cycle, , rename)
+new_tab       = "prefix+c"
+next_tab      = "prefix+n"
+previous_tab  = "prefix+p"
+rename_tab    = "prefix+comma"
+
+# Detach = plain detach (tmux prefix d). Gave up on session switching via keys
+# (herdr can't do it from inside a pane). M-s is now the WORKSPACE manager
+# (list / fuzzy / new / rename / delete / switch — all live via the API).
+detach = "prefix+d"
+
+# Pickers: tmux prefix s = session tree -> workspace picker (+ M-s habit)
+#          tmux prefix w = window tree  -> goto picker
+# Built-in workspace-only list picker (no search box) — kept as a fallback.
+# prefix+s now runs the fzf live workspace switcher below (see [[keys.command]]).
+workspace_picker = "prefix+w"
+
+# Navigator: fuzzy type-to-search, but it searches PANES (herdr has no
+# workspace-only search). Kept on prefix+g for when you want pane search.
+goto             = "prefix+g"
+
+# Iterate agents — Ctrl+Tab / Ctrl+Shift+Tab (focus next/prev agent pane)
+next_agent     = "ctrl+tab"
+previous_agent = "ctrl+shift+tab"
+
+# Cycle workspaces — M-[ previous / M-] next
+previous_workspace = "alt+["
+next_workspace     = "alt+]"
+
+# Jump straight to workspace N (like prefix+N for tabs)
+switch_workspace = "prefix+shift+1..9"
+
+# Bonus: prefix-free direct j/k workspace move, no overlay needed
+navigate_workspace_down = "alt+shift+j"
+navigate_workspace_up   = "alt+shift+k"
+
+# Reload config  (tmux prefix R)
+reload_config = "prefix+shift+r"
+
+# Open settings — Alt+,
+settings = "alt+comma"
+
+# herdr-only, no tmux equivalent: the agent-state sidebar (direct M-b toggle)
+toggle_sidebar = "alt+b"
+
+# ---------------------------------------------------------------------------
+# Live workspace (session) switcher — fzf overlay, analog of your tmux
+# tmux_session_switcher.sh popup. type = "pane" runs it in a temporary pane
+# that closes when the script exits (like display-popup -E). Type to fuzzy
+# filter workspaces, Enter switches, Esc cancels.
+# NOTE: [[keys.command]] blocks MUST come after all scalar keys in [keys].
+# Live WORKSPACE switcher/manager: fuzzy-search, Enter switch (live, via API),
+# n new, r rename, x delete — no detach, works fully inside herdr.
+#   M-s      -> FLOATING POPUP (via the herdr-workspace-popup plugin, since
+#              stable 0.7.4 keybindings have no `type = "popup"`).
+#   prefix+s -> same switcher in a temporary split pane (fallback / non-popup).
+# ---------------------------------------------------------------------------
+[[keys.command]]
+key = "alt+s"
+type = "shell"
+command = "herdr plugin action invoke open-workspace-popup --plugin herdr-workspace-popup"
+
+[[keys.command]]
+key = "prefix+s"
+type = "pane"
+command = "/home/lychang/.config/herdr/scripts/workspace_switcher.sh"
+
+# tmux M-n equivalent: add a pane and keep the tab main-vertical (main 55% left,
+# rest evenly stacked right). Non-destructive (split + set_split_ratio only).
+[[keys.command]]
+key = "alt+n"
+type = "shell"
+command = "/home/lychang/.config/herdr/scripts/main_vertical.py"
+
+# herdr-file-viewer plugin: git-aware file viewer
+[[keys.command]]              # open in a split beside your work
+key = "prefix+f"
+type = "shell"
+command = "herdr plugin action invoke open-file-viewer --plugin herdr-file-viewer"
+
+[[keys.command]]              # …or in its own tab
+key = "prefix+shift+f"
+type = "shell"
+command = "herdr plugin action invoke open-file-viewer-tab --plugin herdr-file-viewer"
+
+# Scratch shell — Alt+p. Opens bash in a temporary pane; exit closes it.
+# (stable 0.7.4 has no custom-command "popup" type — that's preview-only — so
+# this is a normal split pane, not a floating overlay.)
+[[keys.command]]
+key = "alt+p"
+type = "pane"
+command = "bash"
+
+# ---------------------------------------------------------------------------
+# UI: narrower sidebar (default is 26 / min 18 / max 36)
+# ---------------------------------------------------------------------------
+[ui]
+sidebar_width     = 16
+sidebar_min_width = 12
+sidebar_max_width = 22
+
+show_agent_labels_on_pane_borders = true
+
+# Sidebar agent panel: group agents by workspace ("spaces") vs flat attention
+# queue ("priority"). You want grouped-by-workspace.
+agent_panel_sort = "priority"
+
+# High-contrast accent for focused pane border, highlights, nav UI (gruvbox orange)
+accent = "#fe8019"
+[ui.toast]
+delivery = "herdr"
+
+[experimental]
+pane_history = true
+switch_ascii_input_source_in_prefix = false

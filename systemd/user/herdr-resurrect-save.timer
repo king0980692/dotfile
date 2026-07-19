@@ -1,0 +1,10 @@
+[Unit]
+Description=herdr-assistant-resurrect: periodic agent-session save
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=2min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
