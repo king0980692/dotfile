@@ -131,6 +131,30 @@ key = "alt+p"
 type = "pane"
 command = "bash"
 
+# Pane resize — M-arrow (tmux: bind -n M-Left/Right/Up/Down resize-pane -L/R/U/D).
+# herdr has no scalar per-direction resize key (only resize_mode), so drive the
+# `pane resize` API directly. --amount is a fraction of the pane size (~0.03 ≈ a
+# few columns/rows per press); bump it if you want bigger steps.
+[[keys.command]]
+key = "alt+left"
+type = "shell"
+command = "herdr pane resize --direction left --amount 0.03 --current"
+
+[[keys.command]]
+key = "alt+right"
+type = "shell"
+command = "herdr pane resize --direction right --amount 0.03 --current"
+
+[[keys.command]]
+key = "alt+up"
+type = "shell"
+command = "herdr pane resize --direction up --amount 0.03 --current"
+
+[[keys.command]]
+key = "alt+down"
+type = "shell"
+command = "herdr pane resize --direction down --amount 0.03 --current"
+
 # ---------------------------------------------------------------------------
 # UI: narrower sidebar (default is 26 / min 18 / max 36)
 # ---------------------------------------------------------------------------

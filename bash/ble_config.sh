@@ -66,14 +66,12 @@ ble-bind -m vi_imap -f 'C-n' 'history-next'
 # Hook
 # https://github.com/akinomyoga/ble.sh/wiki/Manual-%C2%A71-Introduction#user-content-fn-blehook
 function on_chpwd {
-  if [ -n "$TMUX" ]; then
+  if [ -n "$TMUX" ] || [ -n "${HERDR_ENV:-}" ]; then
     local dir_display git_info branch git_state item_count
     local -a entries
 
-    # tmux set -g pane-border-format "#[align=left]#[fg=green][#[fg=colour214]#{pane_current_path}#[fg=green]]#[fg=yellow]#[default]"
-	# tmux set -g pane-border-format "#(~/.config/tmux/format_path.sh '#{pane_current_path}' '#{pane_title}')#(~/.config/tmux/cur_cmd.sh '#{pane_tty}' '#{pane_title}')#[default] "
-
-    tmux set -g pane-border-format "#(~/.config/tmux/pane_border.sh '#{pane_current_path}' '#{pane_title}' '#{pane_active}' '#{pane_width}' '#{pane_current_command}')"
+    # tmux-only: update the pane border format (herdr has its own border UI).
+    [ -n "$TMUX" ] && tmux set -g pane-border-format "#(~/.config/tmux/pane_border.sh '#{pane_current_path}' '#{pane_title}' '#{pane_active}' '#{pane_width}' '#{pane_current_command}')"
 
     dir_display=${PWD/#$HOME/~}
     git_info=''

@@ -210,7 +210,7 @@ _blesh_show_notice() {
 
 # fzf available via mise (no key binding integration — using custom widgets)
 
-if [ -n "$TMUX" ]; then
+if [ -n "$TMUX" ] || [ -n "${HERDR_ENV:-}" ]; then
     _cached_eval starship starship starship init bash
 else
     PS1="\[\e[32m\][\w]\[\e[89m\]\$(GIT_PS1_SHOWDIRTYSTATE=1 __git_ps1 2>/dev/null)\[\033[00m\] $ "
