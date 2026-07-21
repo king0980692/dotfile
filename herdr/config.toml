@@ -165,8 +165,8 @@ sidebar_max_width = 22
 
 show_agent_labels_on_pane_borders = true
 
-# Sidebar agent panel: group agents by workspace ("spaces") vs flat attention
-# queue ("priority"). You want grouped-by-workspace.
+# Sidebar sort order. Only valid values: "spaces" / "workspaces" (grouped by
+# workspace) or "priority" (attention queue). herdr 0.7.4 has no "recent" option.
 agent_panel_sort = "priority"
 
 # High-contrast accent for focused pane border, highlights, nav UI (gruvbox orange)

@@ -1352,7 +1352,9 @@ require('hlchunk').setup({
 })
 
 -- Copy over ssh
-if vim.env.SSH_TTY then
+-- OSC52 clipboard: over SSH (SSH_TTY) and inside herdr (HERDR_ENV) — herdr
+-- doesn't set SSH_TTY, so gate on it too or copy silently no-ops there.
+if vim.env.SSH_TTY or vim.env.HERDR_ENV then
   local osc52 = require("vim.ui.clipboard.osc52")
 
   local function copy_reg(reg)
