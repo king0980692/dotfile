@@ -110,18 +110,24 @@ while IFS=$'\t' read -r pane agent ws tab; do
   entries="$(printf '%s' "$entries" | jq --argjson e "$entry" '. + [$e]')"
 done < <(herdr agent list 2>/dev/null | jq -r '.result.agents[]? | [.pane_id, .agent, .workspace_id, .tab_id] | @tsv' 2>/dev/null)
 
-n="$(printf '%s' "$entries" | jq 'length')"
-got="$(printf '%s' "$entries" | jq '[.[]|select(.session_id!="")]|length')"
+# Merge with the existing file to PRESERVE pending entries: panes that still
+# exist but aren't currently detected as agents (restored shells awaiting resume
+# after a herdr restart, or an agent momentarily undetected). Keep an old entry
+# when its pane still exists AND isn't in this snapshot AND has a session id.
+# Panes that are truly gone are dropped. This is what stops a save right after a
+# herdr (self-)restart from wiping the not-yet-resumed sessions.
+pids_json="$(herdr pane list 2>/dev/null | jq -c '[.result.panes[]?.pane_id]')"
+old_agents="$(jq -c '.agents // []' "$OUT" 2>/dev/null || echo '[]')"
 
-# Don't clobber good pre-reboot data with an empty snapshot (see restore race).
-if [ "$got" -eq 0 ] && [ -f "$OUT" ]; then
-  oldgot="$(jq '[.agents[]?|select(.session_id!="")]|length' "$OUT" 2>/dev/null || echo 0)"
-  if [ "${oldgot:-0}" -gt 0 ]; then
-    echo "no live agent sessions; preserving existing $OUT ($oldgot pending)"
-    exit 0
-  fi
-fi
+merged="$(jq -n --argjson new "$entries" --argjson old "${old_agents:-[]}" --argjson pids "${pids_json:-[]}" '
+  ($new | map(.pane)) as $np
+  | $new + [ $old[]
+      | select((.session_id // "") != "")
+      | select(.pane as $p | ($pids | index($p)) != null)
+      | select(.pane as $p | ($np   | index($p)) == null) ]')"
 
-jq -n --argjson agents "$entries" --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+n="$(printf '%s' "$merged" | jq 'length')"
+got="$(printf '%s' "$merged" | jq '[.[]|select((.session_id//"")!="")]|length')"
+jq -n --argjson agents "$merged" --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
   '{version:1, saved_at:$ts, agents:$agents}' > "$OUT"
-echo "saved $n agent pane(s), $got with session id -> $OUT"
+echo "saved $n pane(s), $got with session id -> $OUT (merged pending)"

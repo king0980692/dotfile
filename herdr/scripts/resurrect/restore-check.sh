@@ -19,8 +19,13 @@ AGENTS="${HERDR_RESURRECT_AGENTS:-$HOME/.config/herdr/resurrect/agents.json}"
 command -v jq >/dev/null 2>&1 || exit 0
 command -v herdr >/dev/null 2>&1 || exit 0
 
-# per-boot, per-pane guard (RUNTIME dir is cleared on reboot -> resets each boot)
-mdir="${XDG_RUNTIME_DIR:-/tmp}/herdr-resurrect/restored"
+# per-(server-generation), per-pane guard. Keyed by the herdr socket's inode+
+# ctime, which changes whenever the server (re)starts — so BOTH a reboot AND a
+# plain herdr server restart (e.g. a self-update) reset the markers and re-run
+# restore. (RUNTIME dir is also wiped on reboot, so old generations don't pile
+# up across boots.)
+gen="$(stat -c '%i-%Z' "${HERDR_SOCKET_PATH:-$HOME/.config/herdr/herdr.sock}" 2>/dev/null || echo gen0)"
+mdir="${XDG_RUNTIME_DIR:-/tmp}/herdr-resurrect/restored/$gen"
 mkdir -p "$mdir" 2>/dev/null || exit 0
 marker="$mdir/$(printf '%s' "$HERDR_PANE_ID" | tr -c 'A-Za-z0-9' '_')"
 [ -e "$marker" ] && exit 0

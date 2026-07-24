@@ -80,6 +80,11 @@ esac
 # workspace underneath in real time via fzf's `focus` event; Esc/q restores the
 # workspace we started on. Pane mode leaves this OFF — switching away would hide
 # the switcher pane itself.
+# Preselect the current (focused) workspace: 1-based position in render order.
+# --sync applies the start binding before the UI is interactive, so with live
+# mode the initial focus event lands on the current workspace (no jump to #1).
+cur_pos="$(herdr workspace list 2>/dev/null | jq -r '([.result.workspaces[].focused]|index(true)//0)+1')"
+
 live_binds=()
 origin=""
 if [ "${WS_LIVE:-}" = 1 ]; then
@@ -91,7 +96,8 @@ sel="$(render | fzf \
   --delimiter='\t' --with-nth='2..' \
   --prompt='workspace ❯ ' --pointer='➤' \
   --reverse --cycle --height='100%' --border=rounded \
-  --disabled --info=hidden \
+  --disabled --info=hidden --sync \
+  --bind "start:pos(${cur_pos:-1})" \
   --header='j/k: switch live   Enter: keep   n: new   x: delete   r: rename   /: search   q: cancel' \
   --preview "$self --preview {1}" --preview-window='right,45%,border-left,wrap' \
   "${live_binds[@]}" \
