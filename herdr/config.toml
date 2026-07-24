@@ -4,12 +4,11 @@ onboarding = false
 name = "gruvbox"
 auto_switch = false
 
-# Make the mouse / copy selection highlight obvious (vesper's default is faint).
-# Matches your tmux magenta copy-mode style. Tokens: selection_background,
-# selection_foreground, selection_blocker, selection_cursor.
-[theme.custom]
-selection_background = "#d75fff"
-selection_foreground = "#000000"
+# NOTE: herdr 0.7.5 changed [theme.custom] (CustomThemeColors) to palette-name
+# overrides (mauve/green/yellow/red/peach/surface_dim/...) — the old
+# selection_background/selection_foreground keys are gone and threw "unknown
+# config key". Selection color is now derived from the theme palette. Removed to
+# clear the error; revisit if herdr re-adds a selection override.
 
 # ---------------------------------------------------------------------------
 # Keybindings mapped from ~/.config/tmux/tmux.conf (prefix = M-q, vi mode)
