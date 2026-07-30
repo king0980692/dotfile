@@ -96,21 +96,17 @@ sel="$(render | fzf \
   --delimiter='\t' --with-nth='2..' \
   --prompt='workspace ❯ ' --pointer='➤' \
   --reverse --cycle --height='100%' --border=rounded \
-  --disabled --info=hidden --sync \
+  --info=hidden --sync \
   --bind "start:pos(${cur_pos:-1})" \
-  --header='j/k: switch live   Enter: keep   n: new   x: delete   r: rename   /: search   q: cancel' \
-  --preview "$self --preview {1}" --preview-window='right,45%,border-left,wrap' \
+  --header='type to filter   Enter: switch   M-n new   M-x delete   M-r rename   Esc: cancel' \
   "${live_binds[@]}" \
-  --bind 'j:down' --bind 'k:up' \
   --bind 'ctrl-j:down' --bind 'ctrl-k:up' \
   --bind 'ctrl-n:down' --bind 'ctrl-p:up' \
-  --bind 'left-click:accept' --bind 'q:abort' \
-  --bind 'change:clear-query' \
-  --bind '/:transform:[[ {fzf:prompt} =~ ❯ ]] && echo "enable-search+unbind(j,k,change)+change-prompt(search> )" || echo "disable-search+clear-query+rebind(j,k,change)+change-prompt(workspace ❯ )"' \
+  --bind 'left-click:accept' \
   --bind "ctrl-r:reload($self --render)" \
-  --bind "n:become($self --new)" \
-  --bind "x:become($self --delete {1})" \
-  --bind "r:become($self --rename {1})" \
+  --bind "alt-n:become($self --new)" \
+  --bind "alt-x:become($self --delete {1})" \
+  --bind "alt-r:become($self --rename {1})" \
 )" || {
   # Cancelled: in live mode we've been switching as we navigated — go back.
   [ -n "$origin" ] && herdr workspace focus "$origin"

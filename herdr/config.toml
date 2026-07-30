@@ -96,8 +96,10 @@ toggle_sidebar = "alt+b"
 # ---------------------------------------------------------------------------
 [[keys.command]]
 key = "alt+s"
-type = "shell"
-command = "herdr plugin action invoke open-workspace-popup --plugin herdr-workspace-popup"
+type = "popup"
+command = "env WS_LIVE=1 bash /home/lychang/.config/herdr/scripts/workspace_switcher.sh"
+width = "70%"
+height = "70%"
 
 [[keys.command]]
 key = "prefix+s"
