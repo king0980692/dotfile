@@ -1,7 +1,7 @@
 onboarding = false
 
 [theme]
-name = "gruvbox"
+name = "terminal"
 auto_switch = false
 
 # NOTE: herdr 0.7.5 changed [theme.custom] (CustomThemeColors) to palette-name
