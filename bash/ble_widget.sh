@@ -40,10 +40,14 @@ ble-bind -m 'vi_imap' -f 'M-i' 'mise_install_widget'
 # ble-bind -m 'vi_nmap' -f 'M-i' 'mise_install_widget'
 
 function ble/widget/fzf_search_widget {
-  # 執行指定的 binary
-  ~/.config/leon_scripts/search_files.sh
-  # echo '\n\n'
-  # 執行完後，重繪提示符
+  # Pick a file, then insert its (shell-quoted) path at the cursor on the bash
+  # command line — like fzf's stock Ctrl+T — instead of an action menu.
+  local sel
+  sel="$(~/.config/leon_scripts/search_files.sh)"
+  if [[ -n $sel ]]; then
+    local q; printf -v q '%q' "$sel"
+    ble/widget/insert-string "$q "
+  fi
   ble/widget/redraw-line
 }
 ble-bind -m 'vi_imap' -f 'C-t' 'fzf_search_widget'

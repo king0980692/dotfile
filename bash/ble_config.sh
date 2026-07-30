@@ -21,7 +21,9 @@ ble-import integration/fzf-menu
 # 只針對補全選單設高度：不用全域 FZF_DEFAULT_OPTS（避免 tmux-fzf 等繼承出錯）
 # local -x 把設定限制在這次補全的 fzf 子行程，不影響其他 fzf widget
 function ble/widget/fzf-menu-complete {
-  local -x FZF_DEFAULT_OPTS="${FZF_DEFAULT_OPTS-} --height=40% --min-height=10 --layout=reverse --border"
+  # tab:down / shift-tab:up so you can keep tabbing through candidates (Enter
+  # selects); ctrl-n/p still work too. Otherwise fzf's TAB = toggle-select.
+  local -x FZF_DEFAULT_OPTS="${FZF_DEFAULT_OPTS-} --height=40% --min-height=10 --layout=reverse --border --bind=tab:down,btab:up"
   local bleopt_integration_fzf_menu_enabled=1
   ble/widget/complete
 }
