@@ -24,11 +24,24 @@ command -v herdr >/dev/null 2>&1 || exit 0
 # plain herdr server restart (e.g. a self-update) reset the markers and re-run
 # restore. (RUNTIME dir is also wiped on reboot, so old generations don't pile
 # up across boots.)
-gen="$(stat -c '%i-%Z' "${HERDR_SOCKET_PATH:-$HOME/.config/herdr/herdr.sock}" 2>/dev/null || echo gen0)"
+sock="${HERDR_SOCKET_PATH:-$HOME/.config/herdr/herdr.sock}"
+gen="$(stat -c '%i-%Z' "$sock" 2>/dev/null || echo gen0)"
 mdir="${XDG_RUNTIME_DIR:-/tmp}/herdr-resurrect/restored/$gen"
 mkdir -p "$mdir" 2>/dev/null || exit 0
 marker="$mdir/$(printf '%s' "$HERDR_PANE_ID" | tr -c 'A-Za-z0-9' '_')"
 [ -e "$marker" ] && exit 0
+
+# Only resume during the restore wave right after the server (re)started: herdr
+# spawns all restored panes at once, so their shells hit this within seconds of
+# the socket being (re)created. A pane whose shell starts long after that is a
+# NEW workspace/pane the user made by hand — resuming it would wrongly clone an
+# agent into it, so skip. (WINDOW is generous for slow multi-pane restores.)
+WINDOW=60
+srv="$(stat -c '%Z' "$sock" 2>/dev/null || echo 0)"
+if [ "${srv:-0}" -gt 0 ] && [ "$(( $(date +%s) - srv ))" -gt "$WINDOW" ]; then
+  touch "$marker" 2>/dev/null   # don't re-probe this pane this generation
+  exit 0
+fi
 
 # cheap bail: any saved agent with a session id at all?
 [ "$(jq '[.agents[]?|select(.session_id!="")]|length' "$AGENTS" 2>/dev/null)" -gt 0 ] 2>/dev/null || { touch "$marker" 2>/dev/null; exit 0; }
