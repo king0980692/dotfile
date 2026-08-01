@@ -19,11 +19,12 @@ auto_switch = false
 # tmux: unbind C-b ; set -g prefix M-q
 prefix = "alt+q"
 
-# Pane focus  (tmux prefix h/j/k/l  +  no-prefix M-h/j/k/l vim-navigator)
-focus_pane_left  = ["prefix+h", "alt+h"]
-focus_pane_down  = ["prefix+j", "alt+j"]
-focus_pane_up    = ["prefix+k", "alt+k"]
-focus_pane_right = ["prefix+l", "alt+l"]
+# Pane focus. prefix+h/j/k/l = instant built-in focus (stays zoomed). The
+# no-prefix M-h/j/k/l are rebound below to unzoom-then-focus (see [[keys.command]]).
+focus_pane_left  = "prefix+h"
+focus_pane_down  = "prefix+j"
+focus_pane_up    = "prefix+k"
+focus_pane_right = "prefix+l"
 
 # Splits.  herdr split_vertical = split RIGHT (side-by-side, tmux `%` / M-5)
 #          herdr split_horizontal = split DOWN  (stacked,       tmux `"` / M-')
@@ -155,6 +156,28 @@ command = "herdr pane resize --direction up --amount 0.03 --current"
 key = "alt+down"
 type = "shell"
 command = "herdr pane resize --direction down --amount 0.03 --current"
+
+# M-h/j/k/l pane navigation that UNZOOMS first (built-in focus stays zoomed).
+# The wrapper runs `pane zoom --off` then `pane focus --direction ...`.
+[[keys.command]]
+key = "alt+h"
+type = "shell"
+command = "bash /home/lychang/.config/herdr/scripts/unzoom-focus.sh left"
+
+[[keys.command]]
+key = "alt+j"
+type = "shell"
+command = "bash /home/lychang/.config/herdr/scripts/unzoom-focus.sh down"
+
+[[keys.command]]
+key = "alt+k"
+type = "shell"
+command = "bash /home/lychang/.config/herdr/scripts/unzoom-focus.sh up"
+
+[[keys.command]]
+key = "alt+l"
+type = "shell"
+command = "bash /home/lychang/.config/herdr/scripts/unzoom-focus.sh right"
 
 # ---------------------------------------------------------------------------
 # UI: narrower sidebar (default is 26 / min 18 / max 36)

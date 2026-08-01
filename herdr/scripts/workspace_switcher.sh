@@ -47,7 +47,7 @@ case "${1:-}" in
   --new)
     name="$(ask 'new workspace label:' '')"
     if [ -n "${name// /}" ]; then
-      if err="$(herdr workspace create --label "$name" --focus 2>&1)"; then
+      if err="$(herdr workspace create --label "$name" --cwd "$HOME" --focus 2>&1)"; then
         exit 0                                # --focus already switched us there
       fi
       printf 'create failed:\n%s\n(press enter)\n' "$err" >/dev/tty
