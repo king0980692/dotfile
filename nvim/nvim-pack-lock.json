@@ -69,6 +69,10 @@
       "rev": "f3df514",
       "src": "https://github.com/nvim-neo-tree/neo-tree.nvim"
     },
+    "neovim-ayu": {
+      "rev": "e5a9f0fa2918d6b5f57c21b3ac014314ee5e41c8",
+      "src": "https://github.com/Shatur/neovim-ayu"
+    },
     "nui.nvim": {
       "rev": "de74099",
       "src": "https://github.com/MunifTanjim/nui.nvim"

@@ -27,6 +27,7 @@ vim.o.signcolumn = "yes"
 vim.o.termguicolors = true
 vim.o.wrap = false
 vim.o.tabstop = 4
+vim.o.smarttab = true -- global-only 選項，原本散在 after/ftplugin，集中設一次
 vim.o.swapfile = false
 vim.g.mapleader = " "
 vim.o.winborder = "rounded"
@@ -104,8 +105,11 @@ vim.g.slime_python_ipython = 0
 
 
 vim.pack.add({
-	{ src = "https://github.com/vague2k/vague.nvim" },
-	{ src = "https://github.com/nyoom-engineering/oxocarbon.nvim" },
+  
+	{ src = "https://github.com/Shatur/neovim-ayu" },
+	-- 未使用：colorscheme 目前是 ayu（第 840 行），vague / oxocarbon 沒有被載入
+	-- { src = "https://github.com/vague2k/vague.nvim" },
+	-- { src = "https://github.com/nyoom-engineering/oxocarbon.nvim" },
 	{ src = "https://github.com/nvim-treesitter/nvim-treesitter" },
 	{ src = "https://github.com/neovim/nvim-lspconfig" },
   { src = 'https://github.com/mason-org/mason.nvim' },
@@ -125,8 +129,10 @@ vim.pack.add({
 	{ src = "https://github.com/echasnovski/mini.pick" },
 	{ src = "https://github.com/echasnovski/mini.surround" },
 	-- { src = "https://github.com/echasnovski/mini.indentscope" },
-	{ src = "https://github.com/echasnovski/mini.icons" },
-	{ src = "https://github.com/echasnovski/mini.cursorword" },
+	-- 未使用：兩者的 setup() 都被註解（見下方 require "mini.cursorword" / "mini.icons"）
+	-- mini.icons 沒 setup 就不會生效，圖示實際是走 nvim-web-devicons
+	-- { src = "https://github.com/echasnovski/mini.icons" },
+	-- { src = "https://github.com/echasnovski/mini.cursorword" },
 	{ src = "https://github.com/echasnovski/mini.move" },
 	{ src = "https://github.com/echasnovski/mini.clue" },
 
@@ -146,7 +152,8 @@ vim.pack.add({
   { src = "https://github.com/nvim-lua/plenary.nvim" },
   { src = "https://github.com/MunifTanjim/nui.nvim"},
   { src = "https://github.com/dstein64/nvim-scrollview" },
-  { src = "https://github.com/Mofiqul/vscode.nvim" },
+  -- 未使用：colorscheme vscode 已註解
+  -- { src = "https://github.com/Mofiqul/vscode.nvim" },
   { src = "https://github.com/ibhagwan/fzf-lua" },
 
   -- ignore the status line into tmux
@@ -298,440 +305,47 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 
-require('mason').setup()
-require('mason-lspconfig').setup()
-require('mason-tool-installer').setup({
-	ensure_installed = {
-		"pyright",
-		"ts_ls",
-		"jsonls",
-		"js-debug-adapter",
-	}
-})
+-- ============ mason（延遲載入）============
+-- mason.setup() 在啟動時唯一不可省的副作用，就是把 mason 的 bin 目錄 prepend 到
+-- PATH，讓 vim.lsp.enable() 找得到 pyright / ts_ls / jsonls 執行檔。
+-- 這裡自己做掉那一行（0 成本），其餘 30+ 個 mason-core.* require 延到第一次進
+-- cmdline 才載入。
+vim.env.PATH = vim.fn.stdpath("data") .. "/mason/bin" .. ":" .. vim.env.PATH
 
-local dap = require("dap")
-local dapui = require("dapui")
-
-local js_debug_path = vim.fn.stdpath("data") .. "/mason/packages/js-debug-adapter/js-debug/src/dapDebugServer.js"
-
-dap.adapters["pwa-node"] = {
-	type = "server",
-	host = "127.0.0.1",
-	port = "${port}",
-	executable = {
-		command = "node",
-		args = { js_debug_path, "${port}" },
-	},
-}
-
-local node_launch_config = {
-	type = "pwa-node",
-	request = "launch",
-	name = "Launch current file (Node)",
-	program = "${file}",
-	cwd = "${workspaceFolder}",
-	stopOnEntry = true,
-	console = "integratedTerminal",
-	terminalWinCmd = "botright vertical 80new",
-	sourceMaps = true,
-	skipFiles = { "<node_internals>/**" },
-}
-
-local tsx_launch_config = {
-	type = "pwa-node",
-	request = "launch",
-	name = "Launch current file (tsx)",
-	runtimeExecutable = "npx",
-	runtimeArgs = { "tsx" },
-	program = "${file}",
-	cwd = "${workspaceFolder}",
-	stopOnEntry = true,
-	console = "integratedTerminal",
-	terminalWinCmd = "botright vertical 80new",
-	sourceMaps = true,
-	skipFiles = { "<node_internals>/**" },
-}
-
-for _, filetype in ipairs({ "javascript", "javascriptreact" }) do
-	dap.configurations[filetype] = {
-		vim.deepcopy(node_launch_config),
-		{
-			type = "pwa-node",
-			request = "attach",
-			name = "Attach to process",
-			processId = require("dap.utils").pick_process,
-			cwd = "${workspaceFolder}",
-			sourceMaps = true,
-			skipFiles = { "<node_internals>/**" },
-		},
-		{
-			type = "pwa-node",
-			request = "attach",
-			name = "Attach to :9229",
-			address = "localhost",
-			port = 9229,
-			cwd = "${workspaceFolder}",
-			sourceMaps = true,
-			skipFiles = { "<node_internals>/**" },
-		},
-	}
-end
-
-for _, filetype in ipairs({ "typescript", "typescriptreact" }) do
-	dap.configurations[filetype] = {
-		vim.deepcopy(tsx_launch_config),
-		{
-			type = "pwa-node",
-			request = "attach",
-			name = "Attach to process",
-			processId = require("dap.utils").pick_process,
-			cwd = "${workspaceFolder}",
-			sourceMaps = true,
-			skipFiles = { "<node_internals>/**" },
-		},
-		{
-			type = "pwa-node",
-			request = "attach",
-			name = "Attach to :9229",
-			address = "localhost",
-			port = 9229,
-			cwd = "${workspaceFolder}",
-			sourceMaps = true,
-			skipFiles = { "<node_internals>/**" },
-		},
-	}
-end
-
-dap.defaults.fallback.terminal_win_cmd = "botright vnew"
-
-dapui.setup({
-	layouts = {
-		{
-			elements = {
-				{ id = "stacks", size = 0.55 },
-				{ id = "watches", size = 0.45 },
-			},
-			size = 24,
-			position = "left",
-		},
-		{
-			elements = {
-				{ id = "console", size = 0.35 },
-				{ id = "repl", size = 0.65 },
-			},
-			size = 14,
-			position = "bottom",
-		},
-	},
-})
-require("nvim-dap-virtual-text").setup()
-
-vim.api.nvim_create_autocmd("FileType", {
-	group = vim.api.nvim_create_augroup("DapUiWrap", { clear = true }),
-	pattern = { "dapui_console", "dapui_watches", "dap-repl", "dap-float" },
-	callback = function()
-		vim.opt_local.wrap = true
-		vim.opt_local.linebreak = true
-	end,
-})
-
-vim.g.dap_mode_active = false
-local dap_locked_buffers = {}
-local clear_dap_session_keymaps
-local unlock_dap_buffers
-local dap_auto_zoomed_tmux = false
-
-local function tmux_current_pane()
-	return vim.env.TMUX_PANE
-end
-
-local function tmux_is_zoomed()
-	local pane = tmux_current_pane()
-	if pane == nil or pane == "" then
-		return false
-	end
-
-	local result = vim.system({ "tmux", "display-message", "-p", "-t", pane, "#{window_zoomed_flag}" }, { text = true }):wait()
-	return result.code == 0 and vim.trim(result.stdout or "") == "1"
-end
-
-local function enter_dap_tmux_zoom()
-	local pane = tmux_current_pane()
-	if pane == nil or pane == "" or tmux_is_zoomed() then
-		return
-	end
-
-	local result = vim.system({ "tmux", "resize-pane", "-Z", "-t", pane }, { text = true }):wait()
-	if result.code == 0 then
-		dap_auto_zoomed_tmux = true
-	end
-end
-
-local function leave_dap_tmux_zoom()
-	local pane = tmux_current_pane()
-	if not dap_auto_zoomed_tmux or pane == nil or pane == "" then
-		return
-	end
-
-	vim.system({ "tmux", "resize-pane", "-Z", "-t", pane }, { text = true }):wait()
-	dap_auto_zoomed_tmux = false
-end
-
-vim.api.nvim_create_user_command("DapSessionQuit", function()
-	vim.g.dap_mode_active = false
-	if dap.session() ~= nil then
-		dap.terminate()
-	else
-		clear_dap_session_keymaps()
-		clear_dap_mode_window_keymaps()
-		unlock_dap_buffers()
-		leave_dap_tmux_zoom()
-		dapui.close()
-	end
-end, {})
-
-vim.cmd([[cnoreabbrev <expr> q getcmdtype() == ':' && getcmdline() ==# 'q' && luaeval('vim.g.dap_mode_active') ? 'DapSessionQuit' : 'q']])
-
-local dap_session_keymaps = {
-	["<leader>o"] = { dap.step_out, "DAP step out" },
-	["<leader>B"] = {
-		function()
-			dap.set_breakpoint(vim.fn.input("Breakpoint condition: "))
-		end,
-		"DAP conditional breakpoint",
-	},
-	["<leader>u"] = { dapui.toggle, "DAP UI toggle" },
-	["<leader>t"] = { dap.terminate, "DAP terminate" },
-	["<leader>p"] = { dap.repl.toggle, "DAP REPL toggle" },
-}
-
-local dap_mode_window_keymaps = {
-	["<M-h>"] = "h",
-	["<M-j>"] = "j",
-	["<M-k>"] = "k",
-	["<M-l>"] = "l",
-}
-
-local function set_dap_mode_window_keymaps()
-	for lhs, direction in pairs(dap_mode_window_keymaps) do
-		vim.keymap.set("n", lhs, function()
-			vim.cmd("wincmd " .. direction)
-		end, { silent = true, desc = "DAP local window move" })
-		vim.keymap.set("i", lhs, function()
-			vim.cmd("stopinsert")
-			vim.cmd("wincmd " .. direction)
-		end, { silent = true, desc = "DAP local window move" })
-	end
-end
-
-local function clear_dap_mode_window_keymaps()
-	for lhs, _ in pairs(dap_mode_window_keymaps) do
-		pcall(vim.keymap.del, "n", lhs)
-		pcall(vim.keymap.del, "i", lhs)
-	end
-end
-
-local function get_visual_selection_text()
-	local start_pos = vim.fn.getpos("'<")
-	local end_pos = vim.fn.getpos("'>")
-	local start_row, start_col = start_pos[2], start_pos[3]
-	local end_row, end_col = end_pos[2], end_pos[3]
-
-	if start_row == 0 or end_row == 0 then
-		return nil
-	end
-
-	if start_row > end_row or (start_row == end_row and start_col > end_col) then
-		start_row, end_row = end_row, start_row
-		start_col, end_col = end_col, start_col
-	end
-
-	local lines = vim.api.nvim_buf_get_lines(0, start_row - 1, end_row, false)
-	if #lines == 0 then
-		return nil
-	end
-
-	lines[1] = string.sub(lines[1], start_col)
-	lines[#lines] = string.sub(lines[#lines], 1, end_col)
-	return table.concat(lines, "\n")
-end
-
-local function add_watch_expression(expr)
-	local text = expr and vim.trim(expr) or ""
-	if text == "" then
-		return
-	end
-
-	require("dapui.elements.watches").add(text)
-	if vim.g.dap_mode_active then
-		dapui.open()
-	end
-end
-
-local function dap_next_or_search_next()
-	if vim.v.hlsearch == 1 and vim.fn.getreg("/") ~= "" then
-		vim.cmd("normal! n")
-		return
-	end
-
-	dap.step_over()
-end
-
-local function is_dap_code_buffer(bufnr)
-	if not vim.api.nvim_buf_is_valid(bufnr) then
-		return false
-	end
-
-	return vim.bo[bufnr].buftype == "" and vim.api.nvim_buf_get_name(bufnr) ~= ""
-end
-
-local function lock_dap_buffer(bufnr)
-	if not is_dap_code_buffer(bufnr) then
-		return
-	end
-
-	if dap_locked_buffers[bufnr] == nil then
-		dap_locked_buffers[bufnr] = {
-			modifiable = vim.bo[bufnr].modifiable,
-			readonly = vim.bo[bufnr].readonly,
-		}
-	end
-
-	vim.bo[bufnr].modifiable = false
-	vim.bo[bufnr].readonly = true
-
-	local opts = { buffer = bufnr, silent = true }
-	vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR><Esc>", vim.tbl_extend("force", opts, { desc = "DAP clear search" }))
-	vim.keymap.set("n", "n", dap_next_or_search_next, vim.tbl_extend("force", opts, { desc = "DAP next / search next" }))
-	vim.keymap.set("n", "s", dap.step_into, vim.tbl_extend("force", opts, { desc = "DAP step into" }))
-	vim.keymap.set("n", "c", dap.continue, vim.tbl_extend("force", opts, { desc = "DAP continue" }))
-	vim.keymap.set("n", "b", dap.toggle_breakpoint, vim.tbl_extend("force", opts, { desc = "DAP breakpoint" }))
-	vim.keymap.set("n", "L", dap.focus_frame, vim.tbl_extend("force", opts, { desc = "DAP focus current line" }))
-end
-
-unlock_dap_buffers = function()
-	for bufnr, state in pairs(dap_locked_buffers) do
-		if vim.api.nvim_buf_is_valid(bufnr) then
-			vim.bo[bufnr].modifiable = state.modifiable
-			vim.bo[bufnr].readonly = state.readonly
-			pcall(vim.keymap.del, "n", "n", { buffer = bufnr })
-			pcall(vim.keymap.del, "n", "<Esc>", { buffer = bufnr })
-			pcall(vim.keymap.del, "n", "s", { buffer = bufnr })
-			pcall(vim.keymap.del, "n", "c", { buffer = bufnr })
-			pcall(vim.keymap.del, "n", "b", { buffer = bufnr })
-			pcall(vim.keymap.del, "n", "L", { buffer = bufnr })
-		end
-	end
-
-	dap_locked_buffers = {}
-end
-
-local function lock_all_dap_code_buffers()
-	for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
-		lock_dap_buffer(bufnr)
-	end
-end
-
-vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
-	group = vim.api.nvim_create_augroup("DapSessionBufferLock", { clear = true }),
-	callback = function(args)
-		if vim.g.dap_mode_active then
-			lock_dap_buffer(args.buf)
-		end
-	end,
-})
-
-local function set_dap_session_keymaps()
-	for lhs, rhs in pairs(dap_session_keymaps) do
-		vim.keymap.set("n", lhs, rhs[1], { desc = rhs[2], silent = true })
-	end
-end
-
-clear_dap_session_keymaps = function()
-	for lhs, _ in pairs(dap_session_keymaps) do
-		pcall(vim.keymap.del, "n", lhs)
-	end
-end
-
-dap.listeners.after.event_initialized["dapui_config"] = function()
-	vim.g.dap_mode_active = true
-	set_dap_session_keymaps()
-	set_dap_mode_window_keymaps()
-	lock_all_dap_code_buffers()
-	enter_dap_tmux_zoom()
-	dapui.open()
-end
-dap.listeners.before.event_terminated["dapui_config"] = function()
-	if not vim.g.dap_mode_active then
-		clear_dap_session_keymaps()
-		clear_dap_mode_window_keymaps()
-		unlock_dap_buffers()
-		leave_dap_tmux_zoom()
-		dapui.close()
-	end
-end
-dap.listeners.before.event_exited["dapui_config"] = function()
-	if not vim.g.dap_mode_active then
-		clear_dap_session_keymaps()
-		clear_dap_mode_window_keymaps()
-		unlock_dap_buffers()
-		leave_dap_tmux_zoom()
-		dapui.close()
-	end
-end
-dap.listeners.before.disconnect["dapui_config"] = function()
-	vim.g.dap_mode_active = false
-	clear_dap_session_keymaps()
-	clear_dap_mode_window_keymaps()
-	unlock_dap_buffers()
-	leave_dap_tmux_zoom()
-	dapui.close()
-end
-
-local function dap_continue_with_picker()
-	if dap.session() ~= nil then
-		dap.continue()
-		return
-	end
-
-	if vim.g.dap_mode_active then
-		dap.run_last()
-		return
-	end
-
-	local configs = dap.configurations[vim.bo.filetype] or {}
-	if #configs <= 1 then
-		dap.continue()
-		return
-	end
-
-	MiniPick.ui_select(configs, {
-		prompt = "Debug configuration",
-		format_item = function(item)
-			return item.name
-		end,
-	}, function(choice)
-		if choice ~= nil then
-			dap.run(choice)
-		end
-	end, {
-		window = {
-			config = {
-				width = math.max(50, math.floor(vim.o.columns * 0.3)),
-				height = 7,
-			},
+local function load_mason()
+	require("mason").setup()
+	require("mason-lspconfig").setup()
+	require("mason-tool-installer").setup({
+		ensure_installed = {
+			"pyright",
+			"ts_ls",
+			"jsonls",
+			"js-debug-adapter",
 		},
 	})
 end
 
-vim.keymap.set("n", "<F5>", dap_continue_with_picker, { desc = "DAP continue" })
-vim.keymap.set("n", "<leader>b", dap.toggle_breakpoint, { desc = "DAP toggle breakpoint" })
-vim.keymap.set("n", "<leader>w", function()
-	add_watch_expression(vim.fn.expand("<cword>"))
-end, { desc = "DAP add watch" })
-vim.keymap.set("x", "w", function()
-	add_watch_expression(get_visual_selection_text())
-end, { desc = "DAP add watch from selection" })
+vim.api.nvim_create_autocmd("CmdlineEnter", {
+	group = vim.api.nvim_create_augroup("MasonLazyLoad", { clear = true }),
+	once = true,
+	callback = function()
+		vim.schedule(load_mason)
+	end,
+})
+
+-- ============ DAP（延遲載入）============
+-- 實際設定在 lua/dap_setup.lua，第一次按下面任一鍵才會 require 進來。
+-- require 有 memoize，之後每次都是 table 查找，成本為零。
+local function dap_action(name)
+	return function()
+		require("dap_setup")[name]()
+	end
+end
+
+vim.keymap.set("n", "<F5>", dap_action("continue"), { desc = "DAP continue" })
+vim.keymap.set("n", "<leader>b", dap_action("toggle_breakpoint"), { desc = "DAP toggle breakpoint" })
+vim.keymap.set("n", "<leader>w", dap_action("watch_cword"), { desc = "DAP add watch" })
+vim.keymap.set("x", "w", dap_action("watch_selection"), { desc = "DAP add watch from selection" })
 
 -- .jsonl 用獨立的 jsonl filetype（避免 jsonls 把多筆 JSON 當成一份而報錯）
 vim.filetype.add({ extension = { jsonl = "jsonl" } })
@@ -828,9 +442,14 @@ vim.lsp.config('pyright', {
 })
 
 
-
+require('ayu').setup({
+    mirage = false, -- Set to `true` to use `mirage` variant instead of `dark` for dark background.
+    terminal = true, -- Set to `false` to let terminal manage its own colors.
+    overrides = {}, -- A dictionary of group names, each associated with a dictionary of parameters (`bg`, `fg`, `sp` and `style`) and colors in hex.
+})
 -- require()
-vim.cmd("colorscheme vague")
+-- vim.cmd("colorscheme vague")
+vim.cmd("colorscheme ayu")
 -- vim.cmd("colorscheme vscode")
 vim.api.nvim_set_hl(0, "pmenu", {
     -- 將背景顏色 (bg) 設定為 nil 或 false 以實現透明
@@ -931,10 +550,20 @@ vim.o.foldcolumn = '0' -- '0' is not bad
 vim.o.foldlevel = 99 -- Using ufo provider need a large value, feel free to decrease the value
 vim.o.foldlevelstart = 99
 vim.o.foldenable = true
-require "ufo".setup({
-  provider_selector = function(bufnr, filetype, buftype)
-    return {'treesitter', 'indent'}
-  end
+-- ufo 延遲到第一次讀進真實檔案才載入（開空 nvim 不需要 folding）。
+-- 用 BufReadPost 而非 BufWinEnter：ufo 自己是掛 BufWinEnter attach 的，而
+-- BufReadPost 早於 BufWinEnter，所以第一個開的 buffer 仍然吃得到 folding。
+-- 上面那些 fold 選項是 vim.o 賦值，成本為零，維持在啟動時設定。
+vim.api.nvim_create_autocmd("BufReadPost", {
+  group = vim.api.nvim_create_augroup("UfoLazyLoad", { clear = true }),
+  once = true,
+  callback = function()
+    require("ufo").setup({
+      provider_selector = function(bufnr, filetype, buftype)
+        return { 'treesitter', 'indent' }
+      end
+    })
+  end,
 })
 vim.keymap.set("n", "{",  '<cmd>foldclose<CR>',{ desc = 'fold: close fold' } )
 vim.keymap.set("n", "}",  '<cmd>foldopen<CR>',{ desc = 'fold: close fold' } )
@@ -958,90 +587,157 @@ vim.keymap.set("n", "}",  '<cmd>foldopen<CR>',{ desc = 'fold: close fold' } )
 
 
 
-require("mini.clue").setup({
-		-- Clue window settings
-		window = {
-			-- Floating window config
-			config = {
-				width = 40,
-			},
+-- ============ mini.clue / mini.surround / mini.move（延遲載入）============
+-- 這三個都是純按鍵驅動，開檔、上色、LSP 都用不到，可以整組延到第一次真的按下
+-- 相關按鍵才 setup。
+local mini_extras_loaded = false
 
-			-- Delay before showing clue window
-			delay = 100,
+-- mini.clue 的 trigger key 集合。載入前先由這些 key 的 bootstrap mapping 代打，
+-- 載入後刪掉 bootstrap，再把該鍵 replay 回去交給真正的 handler。
+local mini_lazy_triggers = {
+	{ mode = "n", keys = "<Leader>" }, { mode = "x", keys = "<Leader>" },
+	{ mode = "n", keys = "g" },        { mode = "x", keys = "g" },
+	{ mode = "n", keys = "z" },        { mode = "x", keys = "z" },
+	{ mode = "n", keys = "`" },        { mode = "x", keys = "`" },
+	{ mode = "n", keys = "s" },
+	{ mode = "n", keys = "[" },        { mode = "n", keys = "]" },
+	{ mode = "n", keys = "<C-w>" },
+	{ mode = "i", keys = "<C-x>" },
+}
 
-			-- Keys to scroll inside the clue window
+local function load_mini_extras()
+	if mini_extras_loaded then return end
+	mini_extras_loaded = true
 
-			scroll_down = "down",
-			scroll_up = "up",
-		},
-		triggers = {
+	-- 先移除 bootstrap mapping，replay 的按鍵才會落到真正的 handler 上
+	for _, t in ipairs(mini_lazy_triggers) do
+		pcall(vim.keymap.del, t.mode, t.keys)
+	end
 
-			-- Folding triggers
-			{ mode = "n", keys = "z" },
-			{ mode = "x", keys = "z" },
-
-			-- Leader triggers
-			{ mode = "n", keys = "<Leader>" },
-			{ mode = "x", keys = "<Leader>" },
-
-			-- Built-in completion
-			{ mode = "i", keys = "<C-x>" },
-
-			-- `g` key
-
-			{ mode = "n", keys = "g" },
-			{ mode = "x", keys = "g" },
-
-
-			-- Marks
-			{ mode = "n", keys = "`" },
-			{ mode = "x", keys = "`" },
-
-
-			-- Window commands
-			{ mode = "n", keys = "<C-w>" },
-
-
-			-- Movements
-			{ mode = "n", keys = "[" },
-			{ mode = "n", keys = "]" },
-
-			-- Surrounds
-			{ mode = "n", keys = "s" },
-		},
-		clues = {
-			-- Enhance this by adding descriptions for <Leader> mapping groups
-			require("mini.clue").gen_clues.builtin_completion(),
-			require("mini.clue").gen_clues.g(),
-			require("mini.clue").gen_clues.marks(),
-			require("mini.clue").gen_clues.registers(),
-			require("mini.clue").gen_clues.windows(),
-			require("mini.clue").gen_clues.z(),
-		},
+	-- 順序有意義：surround 先建 sa/sd/sr…，clue 最後才把 s 註冊成 trigger
+	require "mini.surround".setup({
+	  mappings = {
+	    add = "sa",
+	    delete = "sd",
+	    find = "sf",
+	    find_left = "sF",
+	    highlight = "sh",
+	    replace = "sr",
+	    update_n_lines = "sn",
+	  },
 	})
 
-require "mini.move".setup({
-  mappings = {
-    -- Move visual selection in Visual mode. Defaults are Alt (Meta) + hjkl.
-    left = '<',
-    right = '>',
-    down = '<S-j>',
-    up = '<S-k>',
+	require "mini.move".setup({
+	  mappings = {
+	    -- Move visual selection in Visual mode. Defaults are Alt (Meta) + hjkl.
+	    left = '<',
+	    right = '>',
+	    down = '<S-j>',
+	    up = '<S-k>',
+	
+	    -- Move current line in Normal mode
+	    -- line_left = '<S-h>',
+	    -- line_right = '<S-l>',
+	    -- line_down = '<S-j>',
+	    -- line_up = '<S-k>',
+	
+	    line_left = '',
+	    line_right = '',
+	    line_down = '',
+	    line_up = '',
+	  },
+	})
 
-    -- Move current line in Normal mode
-    -- line_left = '<S-h>',
-    -- line_right = '<S-l>',
-    -- line_down = '<S-j>',
-    -- line_up = '<S-k>',
+	require("mini.clue").setup({
+			-- Clue window settings
+			window = {
+				-- Floating window config
+				config = {
+					width = 40,
+				},
+	
+				-- Delay before showing clue window
+				delay = 100,
+	
+				-- Keys to scroll inside the clue window
+	
+				scroll_down = "down",
+				scroll_up = "up",
+			},
+			triggers = {
+	
+				-- Folding triggers
+				{ mode = "n", keys = "z" },
+				{ mode = "x", keys = "z" },
+	
+				-- Leader triggers
+				{ mode = "n", keys = "<Leader>" },
+				{ mode = "x", keys = "<Leader>" },
+	
+				-- Built-in completion
+				{ mode = "i", keys = "<C-x>" },
+	
+				-- `g` key
+	
+				{ mode = "n", keys = "g" },
+				{ mode = "x", keys = "g" },
+	
+	
+				-- Marks
+				{ mode = "n", keys = "`" },
+				{ mode = "x", keys = "`" },
+	
+	
+				-- Window commands
+				{ mode = "n", keys = "<C-w>" },
+	
+	
+				-- Movements
+				{ mode = "n", keys = "[" },
+				{ mode = "n", keys = "]" },
+	
+				-- Surrounds
+				{ mode = "n", keys = "s" },
+			},
+			clues = {
+				-- Enhance this by adding descriptions for <Leader> mapping groups
+				require("mini.clue").gen_clues.builtin_completion(),
+				require("mini.clue").gen_clues.g(),
+				require("mini.clue").gen_clues.marks(),
+				require("mini.clue").gen_clues.registers(),
+				require("mini.clue").gen_clues.windows(),
+				require("mini.clue").gen_clues.z(),
+			},
+		})
+end
 
-    line_left = '',
-    line_right = '',
-    line_down = '',
-    line_up = '',
-  },
+for _, t in ipairs(mini_lazy_triggers) do
+	vim.keymap.set(t.mode, t.keys, function()
+		load_mini_extras()
+		vim.api.nvim_feedkeys(vim.keycode(t.keys), "m", false)
+	end, { desc = "lazy-load mini.clue/surround/move" })
+end
+
+-- 保險絲：mini.move 的鍵（visual 的 < > J K）不在上面的 trigger 集合裡；另外快速
+-- 連打 <Leader>y 這類較長的 mapping 會直接命中長版、繞過 bootstrap。所以再補兩個
+-- 觸發點：進 visual mode、以及第一次 CursorHold（updatetime 200ms）。
+-- 實務上幾乎都是 CursorHold 先到，使用者根本按不到 bootstrap。
+local mini_lazy_group = vim.api.nvim_create_augroup("MiniExtrasLazyLoad", { clear = true })
+vim.api.nvim_create_autocmd("ModeChanged", {
+	group = mini_lazy_group,
+	pattern = "*:[vV\22]",
+	once = true,
+	callback = load_mini_extras,
+})
+vim.api.nvim_create_autocmd("CursorHold", {
+	group = mini_lazy_group,
+	once = true,
+	callback = load_mini_extras,
 })
 
 -- vim.keymap.set("n", "<leader>E", "<Cmd>Neotree right toggle<CR>")
+-- NOTE: mini.pick 的 setup() 是「預設值 + 傳入值」而非累加，所以只能呼叫一次，
+-- 否則後一次會把前一次設的欄位靜默還原成預設值。
 require "mini.pick".setup({
   options = {
     -- Whether to show content from bottom to top
@@ -1050,6 +746,23 @@ require "mini.pick".setup({
     -- Whether to cache matches (more speed and memory on repeated prompts)
 
     use_cache = false,
+  },
+  window = {
+    -- 視窗寬度貼齊當前 buffer 最長那行
+    config = function()
+      local buf = vim.api.nvim_get_current_buf()
+      local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+      local max_length = 0
+      for _, line in ipairs(lines) do
+        local length = vim.fn.strdisplaywidth(line)
+        if length > max_length then
+          max_length = length
+        end
+      end
+      return {
+        width = max_length + 1,
+      }
+    end,
   },
 })
 
@@ -1237,17 +950,6 @@ vim.api.nvim_set_hl(0, "MiniPickMatchCurrent", { bg = "#B2B2B2", fg="black" })
 -- })
 
 
-require "mini.surround".setup({
-  mappings = {
-    add = "sa",
-    delete = "sd",
-    find = "sf",
-    find_left = "sF",
-    highlight = "sh",
-    replace = "sr",
-    update_n_lines = "sn",
-  },
-})
 
 -- require "mini.indentscope".setup({
 --   draw = {
@@ -1255,24 +957,6 @@ require "mini.surround".setup({
 --   },
 --
 -- })
-require "mini.pick".setup({
-  window = {
-    config = function()
-      local buf = vim.api.nvim_get_current_buf()
-      local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-      local max_length = 0
-      for _, line in ipairs(lines) do
-        local length = vim.fn.strdisplaywidth(line)
-        if length > max_length then
-          max_length = length
-        end
-      end
-      return {
-        width = max_length + 1,
-      }
-    end,
-  },
-})
 require "nvim-treesitter.configs".setup({ ensure_installed = { "python", "typescript", "tsx", "json" },
 	highlight = { enable = true }
 })
@@ -1295,7 +979,15 @@ vim.api.nvim_set_hl(0, 'IndentLineCurrent', { fg = '#00decf' })
 
 -- require("indentmini").setup()
 
-require("blink.cmp").setup({
+-- blink.cmp 延遲到第一次進 insert mode 才 setup（補全只在插入模式用得到）。
+-- 注意：blink 的 plugin/blink-cmp.lua 會在啟動時就跑 vim.lsp.config('*', {
+-- capabilities = ... })，那 0.65 ms 省不掉也不該省 —— LSP client 在開檔時就啟動，
+-- capabilities 必須在那之前註冊好。這裡延遲的只有 setup()（約 2.3 ms）。
+vim.api.nvim_create_autocmd("InsertEnter", {
+  group = vim.api.nvim_create_augroup("BlinkLazyLoad", { clear = true }),
+  once = true,
+  callback = function()
+    require("blink.cmp").setup({
   signature = { enabled = true },
   completion = {
     documentation = { auto_show = true, auto_show_delay_ms = 100 },
@@ -1339,6 +1031,8 @@ require("blink.cmp").setup({
     -- use_nvim_cmp_as_default = true,
     nerd_font_variant = "mono",
   },
+    })
+  end,
 })
 
 
