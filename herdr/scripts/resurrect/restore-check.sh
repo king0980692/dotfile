@@ -36,7 +36,7 @@ marker="$mdir/$(printf '%s' "$HERDR_PANE_ID" | tr -c 'A-Za-z0-9' '_')"
 # the socket being (re)created. A pane whose shell starts long after that is a
 # NEW workspace/pane the user made by hand — resuming it would wrongly clone an
 # agent into it, so skip. (WINDOW is generous for slow multi-pane restores.)
-WINDOW=60
+WINDOW=120
 srv="$(stat -c '%Z' "$sock" 2>/dev/null || echo 0)"
 if [ "${srv:-0}" -gt 0 ] && [ "$(( $(date +%s) - srv ))" -gt "$WINDOW" ]; then
   touch "$marker" 2>/dev/null   # don't re-probe this pane this generation
