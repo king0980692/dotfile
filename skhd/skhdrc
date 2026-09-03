@@ -17,7 +17,7 @@ fn - 0x2A: skhd -k "ctrl - tab"
 fn - 0x23: skhd -k "ctrl - p" # fn+p : ctrl+p
 fn - 0x2D: skhd -k "ctrl - n" # fn+n : ctrl+n
 fn - 0x2F: skhd -k "ctrl - l" # fn+n : ctrl+n
-alt - f3: ~/.config/script/toggle_theme.sh
+alt - f3: ~/.config/leon_scripts/toggle_theme.sh
 alt - f2: source ~/.config/test.sh
 
 
