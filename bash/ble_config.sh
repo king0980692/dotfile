@@ -38,7 +38,23 @@ ble-sabbrev v='nvim'
 
 bleopt color_scheme=catppuccin_mocha
 
-ble-face auto_complete='fg=#a6adc8,italic'  # catppuccin_mocha的太淺
+# Auto-suggestion: ANSI index 8 (bright black) instead of a hard-coded
+# truecolor, so it follows the terminal palette on a light background too.
+# The scheme's own #45475a was too dark on a dark background, and the
+# #a6adc8 that replaced it was ~2:1 on a light one — index 8 fixes both.
+ble-face auto_complete='fg=8,italic'
+
+# The catppuccin_mocha scheme paints every command face in hard-coded truecolor
+# tuned for a dark background (command_file = Sapphire #74c7ec: 8.7:1 on
+# #1e1e2e but only 1.7:1 on white). Re-point them at the *normal* ANSI slots
+# (0-7), which terminals render dark on a light theme and light on a dark one,
+# so they follow the palette. Names map to: navy=4 teal=6 purple=5 olive=3.
+ble-face command_file='fg=teal'      # valid binary   (was Sapphire  #74c7ec)
+ble-face command_alias='fg=teal'     #                (was Sapphire)
+ble-face command_function='fg=teal'  #                (was Sapphire)
+ble-face command_builtin='fg=olive'  #                (was Peach     #fab387)
+ble-face command_directory='fg=navy' #                (was Blue      #89b4fa)
+ble-face command_keyword='fg=purple' #                (was Mauve     #cba6f7)
 ble-face syntax_error=none # syntax_error 有顏色讓我很不爽
 
 ble-bind -m 'menu_complete' -f 'C-h' 'menu/backward-column'
