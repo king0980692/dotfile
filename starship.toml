@@ -115,13 +115,16 @@ follow_symlinks = false
 add_newline = false
 palette = "custom1"
 
+# One bubble per component, each with its own tinted dark background (see
+# [palettes.custom1]). Every segment paints its own bg, so the prompt reads the
+# same on a light or a dark terminal instead of relying on the terminal's own
+# background — the bare mocha accents wash out on white (teal was 1.5:1).
 format = """
 $directory\
 ${custom.giturl}\
-$git_branch\
 ${custom.git_worktree}\
+$git_branch\
 $git_status\
-$line_break\
 $character\
 """
 # right_format disabled: ble.sh can't render starship's right prompt cleanly
@@ -129,8 +132,8 @@ $character\
 right_format = ""
 
 [directory]
-style = "teal"
-format = "[ $path ]($style)"
+style = "fg:teal bg:dir_bg"
+format = "[](fg:dir_bg)[ $path ]($style)[](fg:dir_bg) "
 truncation_length = 4
 
 [directory.substitutions]
@@ -153,9 +156,12 @@ disabled = true
 
 [character]
 disabled = false
-success_symbol = "[ ](bold fg:green)"
-error_symbol = "[✘ ](bold fg:red)"
-vimcmd_symbol = "[: ](bold fg:yellow)"
+# default is "$symbol " — the trailing space sits outside the style and would
+# punch a hole in the bubble right before the closing cap.
+format = "[](fg:char_bg)$symbol[](fg:char_bg) "
+success_symbol = "[  ](bold fg:green bg:char_bg)"
+error_symbol = "[ ✘ ](bold fg:red bg:char_bg)"
+vimcmd_symbol = "[ : ](bold fg:yellow bg:char_bg)"
 
 [package]
 disabled = false
@@ -183,14 +189,15 @@ fi
 echo "$GIT_REMOTE_SYMBOL "
 """
 when = "git rev-parse --is-inside-work-tree 2> /dev/null"
-format = "$output"
+style = "fg:subtext0 bg:git_bg"
+format = "[](fg:git_bg)[ $output ]($style)"
 require_repo = true
 ignore_timeout = true
 
 [git_branch]
-symbol = "[](base) "
-style = "fg:lavender bg:base"
-format =  "  [$symbol$branch]($style)[](base)"
+symbol = " "
+style = "fg:lavender bg:git_bg"
+format = "[$symbol$branch ]($style)[](fg:git_bg) "
 
 # [git_status]
 # MINIMAL git status
@@ -200,19 +207,20 @@ format =  "  [$symbol$branch]($style)[](base)"
 # diverged = "⇕⇡${ahead_count}⇣${behind_count} "
 
 [git_status]
-format = "[$untracked$staged$modified$renamed$conflicted$ahead_behind ]($style)"
+style = "bg:status_bg"
+format = "([](fg:status_bg)[ $untracked$staged$modified$renamed$conflicted$ahead_behind]($style)[](fg:status_bg) )"
 # options available for format
-staged     = "[+](green)"
-modified   = "[!](yellow)"
-renamed    = "[»](blue)"
-deleted    = "[-](red)"
-untracked  = "[?](red)"
-stashed    = "[≡](lavender)"
-conflicted = "[✖](red bold)"
+staged     = "[+ ](green bg:status_bg)"
+modified   = "[! ](yellow bg:status_bg)"
+renamed    = "[» ](blue bg:status_bg)"
+deleted    = "[- ](red bg:status_bg)"
+untracked  = "[? ](red bg:status_bg)"
+stashed    = "[≡ ](lavender bg:status_bg)"
+conflicted = "[✖ ](red bold bg:status_bg)"
 
-ahead      = "[⇡${count}](teal)"
-behind     = "[⇣${count}](peach)"
-diverged   = "[⇕⇡${ahead_count}⇣${behind_count}](mauve)"
+ahead      = "[⇡${count} ](teal bg:status_bg)"
+behind     = "[⇣${count} ](peach bg:status_bg)"
+diverged   = "[⇕⇡${ahead_count}⇣${behind_count} ](mauve bg:status_bg)"
 
 [custom.git_worktree]
 description = "Show indicator when inside a git worktree"
@@ -226,8 +234,8 @@ if git rev-parse --git-dir >/dev/null 2>&1; then
 fi
 """
 when = "git rev-parse --is-inside-work-tree >/dev/null 2>&1"
-format = " ([$output ]($style))"
-style = "bold green"
+format = "([ $output]($style))"
+style = "bold fg:green bg:git_bg"
 require_repo = true
 ignore_timeout = true
 
@@ -301,6 +309,16 @@ symbol = ""
 format = "[ $symbol( $context) ]($style)"
 
 [palettes.custom1]
+# --- per-bubble backgrounds: each accent mixed ~22-32% over crust, so every
+# bubble keeps its own hue while staying dark enough for light text on any
+# terminal background. Ratios below are the fg on that bubble (AA needs 4.5).
+# status stays neutral because it holds red/yellow/green/blue glyphs at once.
+dir_bg = "#3b5457"     # teal      -> fg teal      5.44:1
+git_bg = "#454864"     # lavender  -> fg lavender  4.96:1
+status_bg = "#313244"  # neutral   -> worst glyph  5.43:1
+char_bg = "#323f38"    # green @22% -> green 7.42:1, red 4.76:1, yellow 8.68:1
+                       # (lighter tints drop the error glyph below AA on this bg)
+
 # --- background ---
 crust = "#11111b"
 mantle = "#181825"
