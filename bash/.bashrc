@@ -237,7 +237,12 @@ _blesh_show_notice() {
 
 # fzf available via mise (no key binding integration — using custom widgets)
 
-if [ -n "$TMUX" ] || [ -n "${HERDR_ENV:-}" ]; then
+# Prompt: starship everywhere, so raw bash / ssh / herdr / tmux all look alike.
+# The old branch gated starship on $TMUX/$HERDR_ENV and left plain bash on a
+# hand-rolled PS1 whose $(__git_ps1) silently expanded to nothing (git-prompt.sh
+# is never sourced here), i.e. no git info at all. Kept only as a real fallback
+# for hosts without starship.
+if command -v starship >/dev/null 2>&1; then
     _cached_eval starship starship starship init bash
 else
     PS1="\[\e[32m\][\w]\[\e[89m\]\$(GIT_PS1_SHOWDIRTYSTATE=1 __git_ps1 2>/dev/null)\[\033[00m\] $ "
