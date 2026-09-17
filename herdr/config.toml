@@ -230,6 +230,16 @@ rows = [
 [ui.toast]
 delivery = "herdr"
 
+# Native agent resume on server restart (0.8.0+); replaces the DIY resurrect
+# in scripts/resurrect/ (disabled via HERDR_NO_RESURRECT in bash/.bashrc).
+# Only works for agents whose integration reports a session ref — run
+# `herdr integration install claude` (and codex) and keep it current with the
+# server version, or agent_session stays null and nothing is resumed.
+# Resumes as `<agent> --resume <id>`: no argv is stored, so launch flags such
+# as --dangerously-skip-permissions do not survive.
+[session]
+resume_agents_on_restore = true
+
 [experimental]
 # Real graphics protocol for image-rendering TUIs (yazi previews, timg -pkitty)
 # instead of half-block characters. Needs the *host* terminal to support it too

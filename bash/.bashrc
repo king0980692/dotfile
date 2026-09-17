@@ -88,6 +88,13 @@ _cached_eval mise "$HOME/.local/bin/mise" "$HOME/.local/bin/mise" activate bash
 # restore-check.sh matches this pane to a saved session and, once per boot, emits
 # `RESUME <argv>` which we exec (claude --resume <id>). No-op otherwise; disable
 # with HERDR_NO_RESURRECT=1.
+# Retired in favour of herdr's native [session] resume_agents_on_restore, which
+# brought back 14/14 claude panes on the same session id across a real server
+# restart. The one thing native loses is argv: agents return as plain
+# `claude --resume <id>`, without --dangerously-skip-permissions. Accepted —
+# re-launching with the flag is cheaper than keeping this path alive.
+# Delete the next line to bring the DIY resume back.
+export HERDR_NO_RESURRECT=1
 if [[ $- == *i* ]] && [[ -n "${HERDR_ENV:-}" ]]; then
   _hr_out="$("$HOME/.config/herdr/scripts/resurrect/restore-check.sh" 2>/dev/null || true)"
   [[ "$_hr_out" == RESUME\ * ]] && eval "exec ${_hr_out#RESUME }"
