@@ -231,5 +231,9 @@ rows = [
 delivery = "herdr"
 
 [experimental]
+# Real graphics protocol for image-rendering TUIs (yazi previews, timg -pkitty)
+# instead of half-block characters. Needs the *host* terminal to support it too
+# — herdr forwards the graphics, it does not rasterise them itself.
+kitty_graphics = true
 pane_history = true
 switch_ascii_input_source_in_prefix = false
