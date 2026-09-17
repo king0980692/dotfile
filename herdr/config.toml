@@ -1,8 +1,13 @@
 onboarding = false
 
 [theme]
-name = "catppuccin-latte"
+# Fallback when the host terminal does not answer the OSC 11 background query.
+name = "terminal"
+# Follow the attached terminal's light/dark appearance (herdr probes it with
+# OSC 11, so over SSH this reflects the laptop I'm sitting at, not this box).
 auto_switch = false
+dark_name  = "dracula"
+light_name = "catppuccin-latte"
 
 # NOTE: herdr 0.7.5 changed [theme.custom] (CustomThemeColors) to palette-name
 # overrides (mauve/green/yellow/red/peach/surface_dim/...) — the old
