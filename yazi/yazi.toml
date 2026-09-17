@@ -4,3 +4,22 @@ ratio          = [ 0, 1, 3 ]
 sort_sensitive = false
 sort_reverse   = false
 
+
+# Only the three "hand it to the OS" openers are redirected; yazi's own rules
+# (text -> $EDITOR, archives -> extract, trash, ...) are left untouched, so the
+# default [open] rules still apply.
+#
+# smart-open.sh picks the handler from where the terminal actually is:
+# local WSL -> Windows, over ssh -> stay in the terminal. block = true because
+# the ssh path runs TUI viewers that need the tty; the script detaches GUI
+# launches itself so yazi unblocks immediately.
+[opener]
+open = [
+  { run = '"$HOME"/.config/leon_scripts/smart-open.sh %s', desc = "Open", for = "unix", block = true },
+]
+play = [
+  { run = '"$HOME"/.config/leon_scripts/smart-open.sh %s', desc = "Play", for = "unix", block = true },
+]
+reveal = [
+  { run = '"$HOME"/.config/leon_scripts/smart-open.sh %d1', desc = "Reveal", for = "unix", block = true },
+]

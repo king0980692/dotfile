@@ -52,31 +52,13 @@ ha() {
   herdr
 }
 
-# open <path>  — open a file/dir with the OS handler.
-#   WSL   -> explorer.exe (translate to a Windows path first)
-#   Linux -> xdg-open ; macOS -> open. Defaults to the current dir.
+# open <path>  — open a file/dir with the handler that suits where the terminal
+# actually is: local WSL -> Windows, over ssh -> stay in the terminal.
+# Defaults to the current dir.
 open() {
-  local target="${1:-.}"
-  if grep -qi microsoft /proc/version 2>/dev/null; then
-    # explorer.exe is only on PATH when the Windows PATH is inherited; fall back
-    # to its absolute path so this works from any shell.
-    local exp; exp="$(command -v explorer.exe 2>/dev/null)"
-    if [ -z "$exp" ]; then
-      local c; for c in /mnt/c/Windows/explorer.exe /mnt/c/WINDOWS/explorer.exe; do
-        [ -x "$c" ] && exp="$c" && break
-      done
-    fi
-    [ -n "$exp" ] || { echo "open: explorer.exe not found" >&2; return 1; }
-    "$exp" "$(wslpath -w "$target" 2>/dev/null || printf '%s' "$target")" 2>/dev/null
-    return 0   # explorer.exe exits nonzero even on success
-  elif command -v xdg-open >/dev/null 2>&1; then
-    xdg-open "$target" >/dev/null 2>&1 &
-  elif command -v /usr/bin/open >/dev/null 2>&1; then
-    /usr/bin/open "$target"
-  else
-    echo "open: no handler (need explorer.exe / xdg-open / open)" >&2
-    return 1
-  fi
+  # Delegates to smart-open.sh so the shell and yazi agree on the handler, and
+  # so an ssh session stops popping windows on the WSL host. See that script.
+  "$HOME"/.config/leon_scripts/smart-open.sh "${@:-.}"
 }
 
 # Cache eval output — only regenerate when binary changes
