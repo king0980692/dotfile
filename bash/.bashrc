@@ -252,6 +252,10 @@ _cached_eval zoxide zoxide zoxide init bash
 # ble.sh <-> zoxide 整合（讓 z/zi 在 ble.sh 下正常運作；須在 zoxide init 之後）
 [[ ${BLE_VERSION-} ]] && ble-import integration/zoxide
 
+# Prompt -> ble.sh status line, PS1 -> "> ". Must come before ble-attach; see
+# the header of ble_statusline.sh for why.
+[[ ${BLE_VERSION-} ]] && source ~/.config/bash/ble_statusline.sh
+
 # Add this line at the end of .bashrc:
 [[ ! ${BLE_VERSION-} ]] || ble-attach
 
