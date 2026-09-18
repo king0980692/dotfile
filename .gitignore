@@ -29,6 +29,11 @@ tmux/plugins/
 !lazygit/
 !lazygit/**
 
+# Only the config: atuin keeps its key, session and history DB under
+# ~/.local/share/atuin, so nothing secret lives in this directory.
+!atuin/
+!atuin/config.toml
+
 !yazi/
 !yazi/**
 # Ignore yazi plugin repos
