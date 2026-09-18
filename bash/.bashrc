@@ -173,7 +173,9 @@ _dotfile_daily_sync() {
             else
                 echo "遠端有更新，但本機有未提交變更。手動更新: cd ~/.config && git stash && git pull --ff-only && git stash pop" > "$notice"
             fi
-        else                                                     # 分歧
+        elif [[ "$R" == "$B" ]]; then                            # 遠端是本機祖先：只是還沒 push
+            echo "本機領先遠端 $(git -C "$repo" rev-list --count '@{u}..@') 個 commit，尚未 push: cd ~/.config && git push" > "$notice"
+        else                                                     # 真正分歧：兩邊都有對方沒有的 commit
             echo "本機與遠端分歧，請手動處理: cd ~/.config && git status" > "$notice"
         fi
     ) &
