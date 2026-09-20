@@ -36,8 +36,9 @@ tmux/plugins/
 
 !yazi/
 !yazi/**
-# Ignore yazi plugin repos
-yazi/plugins/
+# Ignore third-party yazi plugin repos, but keep the ones written here.
+yazi/plugins/*
+!yazi/plugins/scp-back.yazi/
 
 !git/
 !git/**
