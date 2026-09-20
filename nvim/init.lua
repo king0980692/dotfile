@@ -442,6 +442,32 @@ vim.lsp.config('pyright', {
 })
 
 
+-- Follow the terminal's light/dark appearance.
+-- Neovim asks the terminal itself with OSC 11 and gets this right on its own —
+-- but herdr (and tmux) swallow that query inside a pane and never answer, so
+-- there it would be stuck on the default. Fall back to what the login shell
+-- recorded while it still had the real terminal (_term_appearance_probe in
+-- bash/.bashrc). Must run before the colorscheme below, which reads it.
+-- NOTE: lua/config/options.lua is never sourced by this config, so this has to
+-- live here.
+do
+  local function inherited_appearance()
+    if not (vim.env.HERDR_ENV or vim.env.TMUX) then
+      return nil -- nvim can ask the terminal directly; leave it alone
+    end
+    local f = (vim.env.XDG_RUNTIME_DIR or "/tmp") .. "/term-appearance"
+    if not vim.uv.fs_stat(f) then
+      return nil
+    end
+    local line = (vim.fn.readfile(f) or {})[1]
+    return (line == "light" or line == "dark") and line or nil
+  end
+  local appearance = inherited_appearance()
+  if appearance then
+    vim.o.background = appearance
+  end
+end
+
 require('ayu').setup({
     mirage = false, -- Set to `true` to use `mirage` variant instead of `dark` for dark background.
     terminal = true, -- Set to `false` to let terminal manage its own colors.

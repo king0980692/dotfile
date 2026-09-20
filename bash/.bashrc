@@ -243,6 +243,44 @@ _cached_eval zoxide zoxide zoxide init bash
 # ble.sh <-> zoxide 整合（讓 z/zi 在 ble.sh 下正常運作；須在 zoxide init 之後）
 [[ ${BLE_VERSION-} ]] && ble-import integration/zoxide
 
+# Record what the real terminal answers to an OSC 11 background query, so that
+# programs which cannot ask for themselves can still tell light from dark.
+# herdr (and tmux) swallow the query inside their panes and never reply —
+# verified — so only the login shell, the one attached to the actual terminal,
+# can ask. nvim reads this file when it is running inside herdr; outside it,
+# nvim asks the terminal itself and ignores the file.
+_term_appearance_probe() {
+  [[ -t 0 && -t 1 ]] || return 0
+  [[ -z ${HERDR_ENV:-} && -z ${TMUX:-} ]] || return 0
+  local out=${XDG_RUNTIME_DIR:-/tmp}/term-appearance reply
+  # Write the query to the tty directly: read -p sends its prompt to stderr,
+  # which is easy to silence by accident, and then nothing ever asks.
+  printf '\e]11;?\e\\' >/dev/tty 2>/dev/null || return 0
+  IFS= read -rs -d '\\' -t 0.3 reply </dev/tty 2>/dev/null
+  [[ $reply =~ rgb:([0-9a-fA-F]+)/([0-9a-fA-F]+)/([0-9a-fA-F]+) ]] || return 0
+  local r=$((16#${BASH_REMATCH[1]:0:2})) g=$((16#${BASH_REMATCH[2]:0:2})) b=$((16#${BASH_REMATCH[3]:0:2}))
+  # Rec. 709 luma; >50% brightness means a light background.
+  if (( (2126*r + 7152*g + 722*b) / 10000 > 127 )); then
+    printf 'light\n' >"$out"
+  else
+    printf 'dark\n' >"$out"
+  fi
+}
+[[ $- == *i* ]] && _term_appearance_probe
+
+# yazi asks the terminal with OSC 11 too, and applies no flavor at all when it
+# gets no answer — which is every herdr pane. Its theme.toml is applied
+# unconditionally though, so it is a symlink to one of two generated full
+# themes (leon_scripts/yazi-theme-gen.sh) and we point it at the right one.
+# Runs in every interactive shell so the link also appears on a fresh machine.
+_yazi_theme_sync() {
+  local link=$HOME/.config/yazi/theme.toml want=theme-dark.toml
+  [[ -d ${link%/*} ]] || return 0
+  [[ $(cat "${XDG_RUNTIME_DIR:-/tmp}/term-appearance" 2>/dev/null) == light ]] && want=theme-light.toml
+  [[ $(readlink "$link" 2>/dev/null) == "$want" ]] || ln -sfnT "$want" "$link" 2>/dev/null
+}
+[[ $- == *i* ]] && _yazi_theme_sync
+
 # Prompt -> ble.sh status line, PS1 -> "> ". Must come before ble-attach; see
 # the header of ble_statusline.sh for why.
 [[ ${BLE_VERSION-} ]] && source ~/.config/bash/ble_statusline.sh
