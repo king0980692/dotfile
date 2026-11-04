@@ -73,6 +73,9 @@ karabiner/automatic_backups/
 # herdr/ (logs, sockets, session*.json, plugins.json, release-notes, the
 # auto-installed github/config plugins, sessions/, the resurrect/ output dir)
 # stays ignored by the default `*` rule.
+!herdr-sidebar/
+!herdr-sidebar/settings.json
+
 !herdr/
 !herdr/config.toml
 !herdr/scripts/

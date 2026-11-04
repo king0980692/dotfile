@@ -1,0 +1,81 @@
+id = "herdr-sidebar"
+name = "herdr-sidebar"
+version = "0.15.1"
+description = "Mise-managed customized sidebar"
+min_herdr_version = "0.8.0"
+platforms = ["linux", "macos"]
+
+[[panes]]
+id = "sidebar"
+title = "Sidebar"
+placement = "split"
+command = ["sh", "run.sh"]
+
+[[panes]]
+id = "source-control"
+title = "Source Control"
+placement = "split"
+command = ["sh", "run.sh", "--view", "git"]
+
+[[actions]]
+id = "open-sidebar"
+title = "Toggle sidebar"
+command = ["sh", "run.sh", "--toggle"]
+
+[[actions]]
+id = "open-git"
+title = "Toggle source control"
+command = ["sh", "run.sh", "--toggle-git"]
+
+[[actions]]
+id = "quick-open"
+title = "Quick Open"
+command = ["sh", "run.sh", "--quick-open"]
+
+[[actions]]
+id = "refresh-sidebars"
+title = "Refresh all sidebars"
+command = ["sh", "run.sh", "--refresh-sidebars"]
+
+[[actions]]
+id = "show-explorer"
+title = "Show Explorer"
+command = ["sh", "run.sh", "--show-explorer"]
+
+[[actions]]
+id = "show-git"
+title = "Show Source Control"
+command = ["sh", "run.sh", "--show-git"]
+
+[[actions]]
+id = "show-search"
+title = "Show Search"
+command = ["sh", "run.sh", "--show-search"]
+
+[[events]]
+on = "pane.closed"
+command = ["sh", "run.sh", "--autoclose"]
+
+[[events]]
+on = "pane.exited"
+command = ["sh", "run.sh", "--autoclose"]
+
+[[events]]
+on = "pane.focused"
+command = ["sh", "run.sh", "--ensure"]
+
+[[events]]
+on = "tab.created"
+command = ["sh", "run.sh", "--ensure"]
+
+[[events]]
+on = "tab.focused"
+command = ["sh", "run.sh", "--ensure"]
+
+[[events]]
+on = "workspace.created"
+command = ["sh", "run.sh", "--ensure"]
+
+[[events]]
+on = "workspace.focused"
+command = ["sh", "run.sh", "--ensure"]

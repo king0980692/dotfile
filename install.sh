@@ -83,6 +83,20 @@ mise install --yes || warn "Some tools failed to install (may be rate-limited). 
 info "Installing Yazi packages..."
 mise exec -- ya pkg install || warn "Yazi packages failed to install. Run 'mise exec -- ya pkg install' again later."
 
+# Register the local manifest; mise, not Herdr, supplies the sidebar binary.
+# Never silently replace a plugin already registered by the user.
+if herdr_bin=$(mise which herdr 2>/dev/null) && sidebar_plugins=$("$herdr_bin" plugin list 2>/dev/null); then
+    if printf '%s\n' "$sidebar_plugins" | grep -q '^- herdr-sidebar '; then
+        info "herdr-sidebar already registered; leaving its existing registration unchanged."
+        warn "To use the mise-managed sidebar, unlink the old registration and link $XDG_CONFIG_HOME/herdr/plugins/local/herdr-sidebar."
+    else
+        "$herdr_bin" plugin link "$XDG_CONFIG_HOME/herdr/plugins/local/herdr-sidebar" --enabled \
+            || warn "Could not register the sidebar manifest; link it manually with herdr plugin link."
+    fi
+else
+    warn "Could not list Herdr plugins; register the sidebar manifest manually after installing Herdr."
+fi
+
 # ── 4. Install ble.sh (prebuilt nightly, no make required) ────────
 if [ ! -d "$BLESH_DIR" ]; then
     info "Installing ble.sh..."
