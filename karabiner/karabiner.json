@@ -231,20 +231,36 @@
                         ]
                     },
                     {
-                        "description": "option+F3 → toggle theme (physical: cmd+F3)",
+                        "description": "alt+F3 / cmd+F3 → toggle theme (either side)",
                         "manipulators": [
                             {
                                 "from": {
                                     "key_code": "f3",
                                     "modifiers": {
                                         "mandatory": [
-                                            "left_option"
+                                            "option"
                                         ]
                                     }
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "~/.config/script/toggle_theme.sh"
+                                        "shell_command": "~/.config/leon_scripts/toggle_theme.sh"
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "f3",
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
+                                },
+                                "to": [
+                                    {
+                                        "shell_command": "~/.config/leon_scripts/toggle_theme.sh"
                                     }
                                 ],
                                 "type": "basic"
@@ -288,6 +304,7 @@
                                     {
                                         "bundle_identifiers": [
                                             "^com\\.mitchellh\\.ghostty$",
+                                            "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
                                             "^org\\.alacritty$"
@@ -318,6 +335,7 @@
                                     {
                                         "bundle_identifiers": [
                                             "^com\\.mitchellh\\.ghostty$",
+                                            "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
                                             "^org\\.alacritty$"
@@ -348,6 +366,7 @@
                                     {
                                         "bundle_identifiers": [
                                             "^com\\.mitchellh\\.ghostty$",
+                                            "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
                                             "^org\\.alacritty$"
@@ -385,6 +404,7 @@
                                     {
                                         "bundle_identifiers": [
                                             "^com\\.mitchellh\\.ghostty$",
+                                            "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
                                             "^org\\.alacritty$"
@@ -415,6 +435,7 @@
                                     {
                                         "bundle_identifiers": [
                                             "^com\\.mitchellh\\.ghostty$",
+                                            "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
                                             "^org\\.alacritty$"
@@ -445,6 +466,7 @@
                                     {
                                         "bundle_identifiers": [
                                             "^com\\.mitchellh\\.ghostty$",
+                                            "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
                                             "^org\\.alacritty$"
@@ -475,6 +497,7 @@
                                     {
                                         "bundle_identifiers": [
                                             "^com\\.mitchellh\\.ghostty$",
+                                            "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
                                             "^org\\.alacritty$"
@@ -510,6 +533,7 @@
                                     {
                                         "bundle_identifiers": [
                                             "^com\\.mitchellh\\.ghostty$",
+                                            "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
                                             "^org\\.alacritty$"
@@ -545,6 +569,7 @@
                                     {
                                         "bundle_identifiers": [
                                             "^com\\.mitchellh\\.ghostty$",
+                                            "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
                                             "^org\\.alacritty$"
@@ -575,6 +600,7 @@
                                     {
                                         "bundle_identifiers": [
                                             "^com\\.mitchellh\\.ghostty$",
+                                            "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
                                             "^org\\.alacritty$"
@@ -640,6 +666,7 @@
                                     {
                                         "bundle_identifiers": [
                                             "^com\\.mitchellh\\.ghostty$",
+                                            "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
                                             "^org\\.alacritty$"
@@ -675,6 +702,7 @@
                                     {
                                         "bundle_identifiers": [
                                             "^com\\.mitchellh\\.ghostty$",
+                                            "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
                                             "^org\\.alacritty$"
@@ -710,6 +738,7 @@
                                     {
                                         "bundle_identifiers": [
                                             "^com\\.mitchellh\\.ghostty$",
+                                            "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
                                             "^org\\.alacritty$"
@@ -745,6 +774,7 @@
                                     {
                                         "bundle_identifiers": [
                                             "^com\\.mitchellh\\.ghostty$",
+                                            "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
                                             "^org\\.alacritty$"
@@ -775,6 +805,7 @@
                                     {
                                         "bundle_identifiers": [
                                             "^com\\.mitchellh\\.ghostty$",
+                                            "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
                                             "^org\\.alacritty$"
@@ -812,6 +843,7 @@
                                     {
                                         "bundle_identifiers": [
                                             "^com\\.mitchellh\\.ghostty$",
+                                            "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
                                             "^org\\.alacritty$"
@@ -1205,6 +1237,7 @@
                                         "bundle_identifiers": [
                                             "^com\\.github\\.wez\\.wezterm$",
                                             "^com\\.mitchellh\\.ghostty$",
+                                            "^com\\.superlogical\\.rex$",
                                             "^com\\.google\\.Chrome$",
                                             "^com\\.apple\\.Safari$",
                                             "^com\\.minbrowser\\.min$",

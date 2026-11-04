@@ -8,6 +8,11 @@ use = "yazi-rs/plugins:no-status"
 rev = "6229767"
 hash = "3e023d31f29201efdac2a6ae35fedb78"
 
+[[plugin.deps]]
+use = "macydnah/office"
+rev = "41ebef8"
+hash = "5805affd3ae8adcb3c72b6997d21c0a6"
+
 [[flavor.deps]]
 use = "956MB/vscode-dark-modern"
 rev = "cd60541"

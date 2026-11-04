@@ -1,0 +1,161 @@
+#!/usr/bin/env python3
+"""Search and download photos from Unsplash using only Python's stdlib."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import sys
+import tempfile
+from pathlib import Path
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
+
+
+API = "https://api.unsplash.com"
+USER_AGENT = "unsplash-download/1.0"
+
+
+def api_get(url: str, access_key: str) -> tuple[object, dict[str, str]]:
+    request = Request(
+        url,
+        headers={
+            "Authorization": f"Client-ID {access_key}",
+            "Accept-Version": "v1",
+            "User-Agent": USER_AGENT,
+        },
+    )
+    with urlopen(request, timeout=30) as response:
+        return json.load(response), dict(response.headers.items())
+
+
+def safe_stem(value: str) -> str:
+    value = re.sub(r"[^\w.-]+", "-", value, flags=re.UNICODE).strip("-._")
+    return value[:60] or "unsplash"
+
+
+def extension(content_type: str) -> str:
+    mime = content_type.partition(";")[0].strip().lower()
+    return {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}.get(
+        mime, ".jpg"
+    )
+
+
+def download(url: str, destination_stem: Path) -> Path:
+    request = Request(url, headers={"User-Agent": USER_AGENT})
+    with urlopen(request, timeout=90) as response:
+        suffix = extension(response.headers.get("Content-Type", ""))
+        destination = destination_stem.with_suffix(suffix)
+        with tempfile.NamedTemporaryFile(
+            dir=destination.parent, prefix=f".{destination.name}.", delete=False
+        ) as temporary:
+            temporary_path = Path(temporary.name)
+            while chunk := response.read(1024 * 1024):
+                temporary.write(chunk)
+    temporary_path.replace(destination)
+    return destination
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Search and download keyword photos from Unsplash."
+    )
+    parser.add_argument("query", help="search keyword, e.g. 'taipei night'")
+    parser.add_argument("-n", "--count", type=int, default=1, help="photos to download (1-30)")
+    parser.add_argument(
+        "-s",
+        "--size",
+        choices=("raw", "full", "regular", "small"),
+        default="full",
+        help="image size (default: full)",
+    )
+    parser.add_argument("-o", "--output", type=Path, default=Path("."), help="output directory")
+    parser.add_argument("--page", type=int, default=1, help="search result page")
+    parser.add_argument(
+        "--random", action="store_true", help="download random matching photos instead of search results"
+    )
+    parser.add_argument(
+        "--order-by", choices=("relevant", "latest"), default="relevant", help="result order"
+    )
+    parser.add_argument(
+        "--orientation", choices=("landscape", "portrait", "squarish"), help="photo orientation"
+    )
+    parser.add_argument("--color", help="Unsplash color filter, e.g. blue or black_and_white")
+    parser.add_argument(
+        "--access-key",
+        default=os.environ.get("UNSPLASH_ACCESS_KEY"),
+        help="API Access Key (prefer UNSPLASH_ACCESS_KEY)",
+    )
+    args = parser.parse_args()
+    if not 1 <= args.count <= 30:
+        parser.error("--count must be between 1 and 30")
+    if args.page < 1:
+        parser.error("--page must be at least 1")
+    if not args.access_key:
+        parser.error("set UNSPLASH_ACCESS_KEY or pass --access-key")
+    return args
+
+
+def main() -> int:
+    args = parse_args()
+    params = {"query": args.query, "content_filter": "high"}
+    if args.orientation:
+        params["orientation"] = args.orientation
+    if args.color:
+        params["color"] = args.color
+
+    try:
+        if args.random:
+            params["count"] = args.count
+            payload, headers = api_get(f"{API}/photos/random?{urlencode(params)}", args.access_key)
+            photos = payload
+        else:
+            params.update(
+                {"page": args.page, "per_page": args.count, "order_by": args.order_by}
+            )
+            payload, headers = api_get(
+                f"{API}/search/photos?{urlencode(params)}", args.access_key
+            )
+            photos = payload["results"]  # type: ignore[index]
+        if not photos:
+            print(f"No photos found for: {args.query}", file=sys.stderr)
+            return 1
+
+        args.output.mkdir(parents=True, exist_ok=True)
+        stem = safe_stem(args.query)
+        for index, photo in enumerate(photos, 1):
+            destination = args.output / f"{stem}-{index:02d}-{photo['id']}"
+            existing = list(args.output.glob(f"{destination.name}.*"))
+            if existing:
+                print(f"Skipping existing file: {existing[0]}", file=sys.stderr)
+                continue
+            # Unsplash requires this endpoint to be called when a download occurs.
+            api_get(photo["links"]["download_location"], args.access_key)
+            saved = download(photo["urls"][args.size], destination)
+            photographer = photo["user"]["name"]
+            profile = photo["user"]["links"]["html"]
+            print(f"{saved} — Photo by {photographer} on Unsplash ({profile})")
+
+        remaining = headers.get("X-Ratelimit-Remaining")
+        if remaining is not None:
+            print(f"API requests remaining: {remaining}", file=sys.stderr)
+        return 0
+    except HTTPError as error:
+        try:
+            detail = json.loads(error.read().decode("utf-8")).get("errors", [])
+            message = "; ".join(detail) if detail else error.reason
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            message = error.reason
+        print(f"Unsplash API error {error.code}: {message}", file=sys.stderr)
+    except (URLError, TimeoutError) as error:
+        print(f"Network error: {error}", file=sys.stderr)
+    except (KeyError, TypeError, json.JSONDecodeError) as error:
+        print(f"Unexpected API response: {error}", file=sys.stderr)
+    return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
