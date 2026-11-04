@@ -45,7 +45,7 @@ git clone https://github.com/king0980692/dotfile.git /tmp/dotfile
 rm -rf /tmp/dotfile
 ```
 
-The script safely merges dotfiles into your existing `~/.config` without overwriting unrelated configs (e.g. other apps' settings).
+The script merges dotfiles into your existing `~/.config` without overwriting unrelated configs. **Back up first:** tracked files at the same paths and the shell/Git symlinks can be overwritten.
 
 Then restart your shell:
 
@@ -54,6 +54,12 @@ exec bash
 ```
 
 In tmux, press `prefix + I` to install tmux plugins.
+
+### Machine-specific settings
+
+- Herdr commands use `XDG_CONFIG_HOME` (or `~/.config`) instead of a fixed username. Restart or reload the Herdr server after changing its config.
+- The `tw-market-*` systemd user units are local-only: they depend on a particular TradingAgents checkout and are deliberately ignored by Git. Set them up separately on any machine that needs them.
+- The mise `nnn` GitHub asset is currently pinned to x86_64; adjust it on other architectures. The installer also includes Debian/Ubuntu-specific commands.
 
 ### What install.sh does
 
