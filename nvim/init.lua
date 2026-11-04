@@ -1102,3 +1102,101 @@ if vim.env.SSH_TTY or vim.env.HERDR_ENV then
 
 	vim.o.clipboard = "unnamedplus"
 end
+
+
+-- ============ 原生功能補完（不需要插件）============
+
+-- ---- 1) 全部診斷丟進 quickfix ----
+-- setqflist 的 open 預設就是 true，不用自己 copen。
+-- <leader>d 已經給 "+d 了，所以用大寫。
+vim.keymap.set("n", "<leader>D", function()
+	vim.diagnostic.setqflist()
+end, { desc = "Diagnostics -> quickfix" })
+
+-- ---- 2) 存檔自動格式化 ----
+-- 實作在 lua/format.lua，第一次存檔才 require（開檔、上色、LSP 都用不到）。
+vim.g.autoformat = true
+
+vim.api.nvim_create_autocmd("BufWritePre", {
+	group = vim.api.nvim_create_augroup("AutoFormat", { clear = true }),
+	callback = function(args)
+		if not vim.g.autoformat then
+			return
+		end
+		if vim.bo[args.buf].buftype ~= "" then
+			return -- 不碰 terminal / quickfix / 各種 scratch buffer
+		end
+		require("format").run(args.buf)
+	end,
+})
+
+vim.api.nvim_create_user_command("Format", function()
+	require("format").run(0)
+end, { desc = "手動格式化當前 buffer" })
+
+vim.api.nvim_create_user_command("FormatToggle", function()
+	vim.g.autoformat = not vim.g.autoformat
+	vim.notify("autoformat: " .. tostring(vim.g.autoformat))
+end, { desc = "開關存檔自動格式化" })
+
+-- ---- 3) 複製高亮 / 重開檔案回到上次游標位置 ----
+-- 兩個都不是 nvim 預設行為（0.12 nightly 實測過）。
+-- 注意是 vim.hl.on_yank：vim.highlight 在 0.11 起已 deprecated。
+-- （zero_nvim 那份傳的 visual = true 是無效 key，正確的欄位叫 on_visual，
+--   而且預設就是 true，所以直接不傳。）
+vim.api.nvim_create_autocmd("TextYankPost", {
+	group = vim.api.nvim_create_augroup("HighlightYank", { clear = true }),
+	callback = function()
+		vim.hl.on_yank({ timeout = 200 })
+	end,
+})
+
+vim.api.nvim_create_autocmd("BufReadPost", {
+	group = vim.api.nvim_create_augroup("RestoreCursor", { clear = true }),
+	callback = function(args)
+		local ft = vim.bo[args.buf].filetype
+		if ft == "gitcommit" or ft == "gitrebase" then
+			return -- commit message 永遠要從第一行開始寫
+		end
+		if vim.bo[args.buf].buftype ~= "" then
+			return
+		end
+		-- BufReadPost 也會在 buffer 沒被顯示的情況下觸發（例如 :badd），
+		-- 那時候 win_set_cursor(0, ...) 會打到別的視窗。
+		if vim.api.nvim_get_current_buf() ~= args.buf then
+			return
+		end
+
+		local mark = vim.api.nvim_buf_get_mark(args.buf, '"')
+		if mark[1] > 0 and mark[1] <= vim.api.nvim_buf_line_count(args.buf) then
+			pcall(vim.api.nvim_win_set_cursor, 0, mark)
+			-- 延到 render 之後才置中
+			vim.schedule(function()
+				if vim.api.nvim_get_current_buf() == args.buf then
+					vim.cmd("normal! zz")
+				end
+			end)
+		end
+	end,
+})
+
+-- ---- 4) :grep 全專案搜尋 -> quickfix ----
+-- nightly 的 grepprg 預設是 `rg --vimgrep -uu`，-uu 代表連 .gitignore 都無視，
+-- 在有 node_modules 的專案裡等於災難。這裡改回尊重 ignore 規則。
+-- 跟 <c-f>（fzf-lua live_grep）的差別：quickfix 關掉還在，可以慢慢改。
+vim.o.grepprg = "rg --vimgrep --smart-case --hidden --glob=!.git"
+vim.o.grepformat = "%f:%l:%c:%m"
+
+vim.keymap.set("n", "<leader>g", function()
+	vim.ui.input({ prompt = "Grep: " }, function(pattern)
+		if not pattern or pattern == "" then
+			return
+		end
+		vim.cmd("silent grep! " .. vim.fn.fnameescape(pattern))
+		if vim.tbl_isempty(vim.fn.getqflist()) then
+			vim.notify("找不到: " .. pattern, vim.log.levels.WARN)
+		else
+			vim.cmd("copen")
+		end
+	end)
+end, { desc = "Grep -> quickfix" })
