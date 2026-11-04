@@ -1,0 +1,222 @@
+# Material Design (nf-md) icon set for yazi, shared by the dark and light themes.
+# fg values are palette roles (@blue, @gray, ...); leon_scripts/yazi-theme-gen.sh
+# swaps them for each flavor's colours from [roles.<flavor>] below.
+# Anything not listed falls through to conds: a plain folder or file outline.
+
+[roles.kanagawa]  # Wave
+fg = "#dcd7ba"
+gray = "#727169"
+blue = "#7e9cd8"
+cyan = "#7fb4ca"
+green = "#98bb6c"
+yellow = "#e6c384"
+orange = "#ffa066"
+red = "#e46876"
+pink = "#d27e99"
+violet = "#957fb8"
+
+[roles.kanagawa-lotus]
+fg = "#545464"
+gray = "#8a8980"
+blue = "#4d699b"
+cyan = "#5a7785"
+green = "#6f894e"
+yellow = "#77713f"
+orange = "#cc6d00"
+red = "#c84053"
+pink = "#b35b79"
+violet = "#624c83"
+
+[icon]
+globs = []
+dirs = [
+  { name = ".git", text = "󰘬", fg = "@orange" },  # md-source_branch
+  { name = ".github", text = "󰊤", fg = "@fg" },  # md-github
+  { name = ".config", text = "󱁿", fg = "@violet" },  # md-folder_cog
+  { name = ".cache", text = "󰪺", fg = "@gray" },  # md-folder_clock
+  { name = ".ssh", text = "󰢬", fg = "@yellow" },  # md-folder_key
+  { name = ".local", text = "󱂵", fg = "@blue" },  # md-folder_home
+  { name = "node_modules", text = "󰎙", fg = "@green" },  # md-nodejs
+  { name = "Desktop", text = "󰍹", fg = "@blue" },  # md-monitor
+  { name = "Documents", text = "󰲂", fg = "@blue" },  # md-folder_text
+  { name = "Downloads", text = "󰉍", fg = "@blue" },  # md-folder_download
+  { name = "Music", text = "󱍙", fg = "@blue" },  # md-folder_music
+  { name = "Pictures", text = "󰉏", fg = "@blue" },  # md-folder_image
+  { name = "Videos", text = "󱧺", fg = "@blue" },  # md-folder_play
+  { name = "Public", text = "󰉌", fg = "@blue" },  # md-folder_account
+  { name = "Templates", text = "󰚝", fg = "@blue" },  # md-folder_star
+]
+files = [
+  { name = ".gitignore", text = "󰊢", fg = "@orange" },  # md-git
+  { name = ".gitattributes", text = "󰊢", fg = "@orange" },  # md-git
+  { name = ".gitmodules", text = "󰊢", fg = "@orange" },  # md-git
+  { name = ".gitconfig", text = "󰊢", fg = "@orange" },  # md-git
+  { name = ".bashrc", text = "󱆃", fg = "@green" },  # md-bash
+  { name = ".bash_profile", text = "󱆃", fg = "@green" },  # md-bash
+  { name = ".profile", text = "󱆃", fg = "@green" },  # md-bash
+  { name = ".zshrc", text = "󱆃", fg = "@green" },  # md-bash
+  { name = ".blerc", text = "󱆃", fg = "@green" },  # md-bash
+  { name = ".env", text = "󱆄", fg = "@yellow" },  # md-file_key
+  { name = ".editorconfig", text = "󱁻", fg = "@gray" },  # md-file_cog
+  { name = "Dockerfile", text = "󰡨", fg = "@blue" },  # md-docker
+  { name = "docker-compose.yml", text = "󰡨", fg = "@blue" },  # md-docker
+  { name = "compose.yaml", text = "󰡨", fg = "@blue" },  # md-docker
+  { name = "Makefile", text = "󱌣", fg = "@orange" },  # md-hammer_wrench
+  { name = "CMakeLists.txt", text = "󱌣", fg = "@orange" },  # md-hammer_wrench
+  { name = "justfile", text = "󱌣", fg = "@orange" },  # md-hammer_wrench
+  { name = "LICENSE", text = "󰗑", fg = "@yellow" },  # md-scale_balance
+  { name = "LICENSE.md", text = "󰗑", fg = "@yellow" },  # md-scale_balance
+  { name = "COPYING", text = "󰗑", fg = "@yellow" },  # md-scale_balance
+  { name = "README", text = "󱓷", fg = "@cyan" },  # md-book_open_variant
+  { name = "README.md", text = "󱓷", fg = "@cyan" },  # md-book_open_variant
+  { name = "CLAUDE.md", text = "󱓷", fg = "@orange" },  # md-book_open_variant
+  { name = "package.json", text = "󰛷", fg = "@red" },  # md-npm
+  { name = "package-lock.json", text = "󰌾", fg = "@gray" },  # md-lock
+  { name = "Cargo.toml", text = "󱘗", fg = "@orange" },  # md-language_rust
+  { name = "Cargo.lock", text = "󰌾", fg = "@gray" },  # md-lock
+  { name = "uv.lock", text = "󰌾", fg = "@gray" },  # md-lock
+  { name = "bun.lock", text = "󰌾", fg = "@gray" },  # md-lock
+  { name = "pnpm-lock.yaml", text = "󰌾", fg = "@gray" },  # md-lock
+  { name = "go.mod", text = "󰟓", fg = "@cyan" },  # md-language_go
+  { name = "go.sum", text = "󰌾", fg = "@gray" },  # md-lock
+  { name = "pyproject.toml", text = "󰌠", fg = "@yellow" },  # md-language_python
+  { name = "requirements.txt", text = "󰌠", fg = "@yellow" },  # md-language_python
+]
+exts = [
+  { name = "py", text = "󰌠", fg = "@yellow" },  # md-language_python
+  { name = "pyi", text = "󰌠", fg = "@yellow" },  # md-language_python
+  { name = "ipynb", text = "󰠮", fg = "@orange" },  # md-notebook
+  { name = "js", text = "󰌞", fg = "@yellow" },  # md-language_javascript
+  { name = "mjs", text = "󰌞", fg = "@yellow" },  # md-language_javascript
+  { name = "cjs", text = "󰌞", fg = "@yellow" },  # md-language_javascript
+  { name = "jsx", text = "󰜈", fg = "@cyan" },  # md-react
+  { name = "ts", text = "󰛦", fg = "@blue" },  # md-language_typescript
+  { name = "mts", text = "󰛦", fg = "@blue" },  # md-language_typescript
+  { name = "tsx", text = "󰜈", fg = "@blue" },  # md-react
+  { name = "vue", text = "󰡄", fg = "@green" },  # md-vuejs
+  { name = "rs", text = "󱘗", fg = "@orange" },  # md-language_rust
+  { name = "go", text = "󰟓", fg = "@cyan" },  # md-language_go
+  { name = "lua", text = "󰢱", fg = "@blue" },  # md-language_lua
+  { name = "c", text = "󰙱", fg = "@blue" },  # md-language_c
+  { name = "h", text = "󰙱", fg = "@violet" },  # md-language_c
+  { name = "cpp", text = "󰙲", fg = "@blue" },  # md-language_cpp
+  { name = "cc", text = "󰙲", fg = "@blue" },  # md-language_cpp
+  { name = "hpp", text = "󰙲", fg = "@violet" },  # md-language_cpp
+  { name = "java", text = "󰬷", fg = "@red" },  # md-language_java
+  { name = "kt", text = "󱈙", fg = "@violet" },  # md-language_kotlin
+  { name = "swift", text = "󰛥", fg = "@orange" },  # md-language_swift
+  { name = "rb", text = "󰴭", fg = "@red" },  # md-language_ruby
+  { name = "php", text = "󰌟", fg = "@violet" },  # md-language_php
+  { name = "cs", text = "󰌛", fg = "@green" },  # md-language_csharp
+  { name = "hs", text = "󰲒", fg = "@violet" },  # md-language_haskell
+  { name = "r", text = "󰟔", fg = "@blue" },  # md-language_r
+  { name = "f90", text = "󱈚", fg = "@violet" },  # md-language_fortran
+  { name = "nix", text = "󱄅", fg = "@blue" },  # md-nix
+  { name = "tf", text = "󱁢", fg = "@violet" },  # md-terraform
+  { name = "graphql", text = "󰡷", fg = "@pink" },  # md-graphql
+  { name = "sh", text = "󱆃", fg = "@green" },  # md-bash
+  { name = "bash", text = "󱆃", fg = "@green" },  # md-bash
+  { name = "zsh", text = "󱆃", fg = "@green" },  # md-bash
+  { name = "fish", text = "󱆃", fg = "@green" },  # md-bash
+  { name = "ps1", text = "󰆍", fg = "@blue" },  # md-console
+  { name = "sql", text = "󰆼", fg = "@yellow" },  # md-database
+  { name = "db", text = "󰆼", fg = "@gray" },  # md-database
+  { name = "sqlite", text = "󰆼", fg = "@gray" },  # md-database
+  { name = "html", text = "󰌝", fg = "@orange" },  # md-language_html5
+  { name = "htm", text = "󰌝", fg = "@orange" },  # md-language_html5
+  { name = "css", text = "󰌜", fg = "@blue" },  # md-language_css3
+  { name = "scss", text = "󰟬", fg = "@pink" },  # md-sass
+  { name = "sass", text = "󰟬", fg = "@pink" },  # md-sass
+  { name = "json", text = "󰘦", fg = "@yellow" },  # md-code_json
+  { name = "jsonc", text = "󰘦", fg = "@yellow" },  # md-code_json
+  { name = "jsonl", text = "󰘦", fg = "@yellow" },  # md-code_json
+  { name = "toml", text = "󰒓", fg = "@gray" },  # md-cog
+  { name = "yaml", text = "󰒓", fg = "@violet" },  # md-cog
+  { name = "yml", text = "󰒓", fg = "@violet" },  # md-cog
+  { name = "ini", text = "󰒓", fg = "@gray" },  # md-cog
+  { name = "conf", text = "󰒓", fg = "@gray" },  # md-cog
+  { name = "cfg", text = "󰒓", fg = "@gray" },  # md-cog
+  { name = "xml", text = "󰗀", fg = "@orange" },  # md-xml
+  { name = "csv", text = "󰈘", fg = "@green" },  # md-file_delimited
+  { name = "tsv", text = "󰈘", fg = "@green" },  # md-file_delimited
+  { name = "lock", text = "󰌾", fg = "@gray" },  # md-lock
+  { name = "env", text = "󱆄", fg = "@yellow" },  # md-file_key
+  { name = "pem", text = "󰄤", fg = "@yellow" },  # md-certificate
+  { name = "crt", text = "󰄤", fg = "@yellow" },  # md-certificate
+  { name = "key", text = "󰌆", fg = "@yellow" },  # md-key
+  { name = "pub", text = "󰌆", fg = "@yellow" },  # md-key
+  { name = "gpg", text = "󰯄", fg = "@yellow" },  # md-shield_key
+  { name = "asc", text = "󰯄", fg = "@yellow" },  # md-shield_key
+  { name = "log", text = "󰉹", fg = "@gray" },  # md-format_list_bulleted
+  { name = "bak", text = "󰁯", fg = "@gray" },  # md-backup_restore
+  { name = "diff", text = "󰧮", fg = "@orange" },  # md-file_document_outline
+  { name = "patch", text = "󰧮", fg = "@orange" },  # md-file_document_outline
+  { name = "md", text = "󰍔", fg = "@cyan" },  # md-language_markdown
+  { name = "markdown", text = "󰍔", fg = "@cyan" },  # md-language_markdown
+  { name = "txt", text = "󰧭", fg = "@fg" },  # md-text_box_outline
+  { name = "pdf", text = "󰈦", fg = "@red" },  # md-file_pdf_box
+  { name = "doc", text = "󰈬", fg = "@blue" },  # md-file_word
+  { name = "docx", text = "󰈬", fg = "@blue" },  # md-file_word
+  { name = "xls", text = "󰈛", fg = "@green" },  # md-file_excel
+  { name = "xlsx", text = "󰈛", fg = "@green" },  # md-file_excel
+  { name = "ppt", text = "󰈧", fg = "@orange" },  # md-file_powerpoint
+  { name = "pptx", text = "󰈧", fg = "@orange" },  # md-file_powerpoint
+  { name = "tex", text = "󰈙", fg = "@green" },  # md-file_document
+  { name = "epub", text = "󱓷", fg = "@orange" },  # md-book_open_variant
+  { name = "png", text = "󰈟", fg = "@violet" },  # md-file_image
+  { name = "jpg", text = "󰈟", fg = "@violet" },  # md-file_image
+  { name = "jpeg", text = "󰈟", fg = "@violet" },  # md-file_image
+  { name = "gif", text = "󰈟", fg = "@violet" },  # md-file_image
+  { name = "webp", text = "󰈟", fg = "@violet" },  # md-file_image
+  { name = "bmp", text = "󰈟", fg = "@violet" },  # md-file_image
+  { name = "ico", text = "󰈟", fg = "@violet" },  # md-file_image
+  { name = "svg", text = "󰈟", fg = "@orange" },  # md-file_image
+  { name = "mp3", text = "󰈣", fg = "@pink" },  # md-file_music
+  { name = "flac", text = "󰈣", fg = "@pink" },  # md-file_music
+  { name = "wav", text = "󰈣", fg = "@pink" },  # md-file_music
+  { name = "ogg", text = "󰈣", fg = "@pink" },  # md-file_music
+  { name = "m4a", text = "󰈣", fg = "@pink" },  # md-file_music
+  { name = "mp4", text = "󰈫", fg = "@orange" },  # md-file_video
+  { name = "mkv", text = "󰈫", fg = "@orange" },  # md-file_video
+  { name = "webm", text = "󰈫", fg = "@orange" },  # md-file_video
+  { name = "mov", text = "󰈫", fg = "@orange" },  # md-file_video
+  { name = "avi", text = "󰈫", fg = "@orange" },  # md-file_video
+  { name = "srt", text = "󰨗", fg = "@gray" },  # md-subtitles_outline
+  { name = "ttf", text = "󰛖", fg = "@red" },  # md-format_font
+  { name = "otf", text = "󰛖", fg = "@red" },  # md-format_font
+  { name = "woff", text = "󰛖", fg = "@red" },  # md-format_font
+  { name = "woff2", text = "󰛖", fg = "@red" },  # md-format_font
+  { name = "zip", text = "󰗄", fg = "@yellow" },  # md-zip_box
+  { name = "tar", text = "󰗄", fg = "@yellow" },  # md-zip_box
+  { name = "gz", text = "󰗄", fg = "@yellow" },  # md-zip_box
+  { name = "tgz", text = "󰗄", fg = "@yellow" },  # md-zip_box
+  { name = "xz", text = "󰗄", fg = "@yellow" },  # md-zip_box
+  { name = "zst", text = "󰗄", fg = "@yellow" },  # md-zip_box
+  { name = "bz2", text = "󰗄", fg = "@yellow" },  # md-zip_box
+  { name = "7z", text = "󰗄", fg = "@yellow" },  # md-zip_box
+  { name = "rar", text = "󰗄", fg = "@yellow" },  # md-zip_box
+  { name = "deb", text = "󰏗", fg = "@red" },  # md-package_variant_closed
+  { name = "rpm", text = "󰏗", fg = "@red" },  # md-package_variant_closed
+  { name = "whl", text = "󰏗", fg = "@yellow" },  # md-package_variant_closed
+  { name = "iso", text = "󰗮", fg = "@gray" },  # md-disc
+  { name = "img", text = "󰋊", fg = "@gray" },  # md-harddisk
+  { name = "so", text = "󰍛", fg = "@gray" },  # md-memory
+  { name = "o", text = "󰍛", fg = "@gray" },  # md-memory
+  { name = "a", text = "󰍛", fg = "@gray" },  # md-memory
+  { name = "exe", text = "󰣆", fg = "@gray" },  # md-application
+  { name = "wasm", text = "󰍛", fg = "@violet" },  # md-memory
+]
+conds = [
+  { if = "orphan", text = "󰌺", fg = "@red" },  # md-link_variant_off
+  { if = "link", text = "󰌹", fg = "@gray" },  # md-link_variant
+  { if = "block", text = "󰋊", fg = "@yellow" },  # md-harddisk
+  { if = "char", text = "󰘚", fg = "@yellow" },  # md-chip
+  { if = "fifo", text = "󰟥", fg = "@yellow" },  # md-pipe
+  { if = "sock", text = "󰐧", fg = "@yellow" },  # md-power_socket
+  { if = "sticky", text = "󰐃", fg = "@yellow" },  # md-pin
+  { if = "dummy", text = "󰀦", fg = "@red" },  # md-alert
+  { if = "dir & hovered", text = "󰝰", fg = "@blue" },  # md-folder_open
+  { if = "dir", text = "󰉋", fg = "@blue" },  # md-folder
+  { if = "exec", text = "󰙵", fg = "@green" },  # md-application_cog
+  { if = "!dir", text = "󰈤", fg = "@fg" },  # md-file_outline
+]

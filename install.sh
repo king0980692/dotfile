@@ -62,6 +62,10 @@ fi
 info "Installing tools from mise config..."
 mise install --yes || warn "Some tools failed to install (may be rate-limited). Run 'mise install' again later."
 
+# Restore third-party Yazi plugins and flavors from the tracked package lock.
+info "Installing Yazi packages..."
+mise exec -- ya pkg install || warn "Yazi packages failed to install. Run 'mise exec -- ya pkg install' again later."
+
 # ── 4. Install ble.sh (prebuilt nightly, no make required) ────────
 if [ ! -d "$BLESH_DIR" ]; then
     info "Installing ble.sh..."

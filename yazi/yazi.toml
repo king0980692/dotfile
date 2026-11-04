@@ -1,8 +1,14 @@
 [mgr]
-ratio          = [ 0, 1, 3 ]
+ratio          = [ 0, 3, 7 ]
 # sort_by        = "alphabetical"
 sort_sensitive = false
 sort_reverse   = false
+linemode       = "size"
+
+[preview]
+wrap           = "yes"
+tab_size       = 2
+image_quality  = 90
 
 
 # Only the three "hand it to the OS" openers are redirected; yazi's own rules

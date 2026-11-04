@@ -55,10 +55,13 @@ exec bash
 
 In tmux, press `prefix + I` to install tmux plugins.
 
+Yazi's third-party plugins and flavors are restored from `yazi/package.toml` by the installer. To restore them manually, run `mise exec -- ya pkg install`. After changing flavor packages or `yazi/theme-overrides.toml`, regenerate the checked-in themes with `~/.config/leon_scripts/yazi-theme-gen.sh`.
+
 ### Machine-specific settings
 
 - Herdr commands use `XDG_CONFIG_HOME` (or `~/.config`) instead of a fixed username. Restart or reload the Herdr server after changing its config.
 - The `tw-market-*` systemd user units are local-only: they depend on a particular TradingAgents checkout and are deliberately ignored by Git. Set them up separately on any machine that needs them.
+- The generated Yazi themes refer to syntax themes under `~/.config/yazi`; a non-default `XDG_CONFIG_HOME` needs those paths adjusted.
 - The mise `nnn` GitHub asset is currently pinned to x86_64; adjust it on other architectures. The installer also includes Debian/Ubuntu-specific commands.
 
 ### What install.sh does
