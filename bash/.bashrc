@@ -34,6 +34,8 @@ alias la='ls -lah'
 alias l='ls'
 
 alias ccc='CLAUDE_CODE_NO_FLICKER=1 claude --dangerously-skip-permissions'
+alias cc='claude --dangerously-skip-permissions'
+alias pi-bolt="SSH_CONNECTION=1 pi-bolt"
 
 export EDITOR="nvim"
 
@@ -49,6 +51,11 @@ ta() {
     fi
 }
 ha() {
+  # Last moment we still own the real terminal: re-ask it whether it is light
+  # or dark, so attaching picks up a theme changed since the last login. Inside
+  # herdr nothing can ask any more — it never answers the query in a pane.
+  _term_appearance_probe
+  _yazi_theme_sync
   herdr
 }
 
@@ -66,22 +73,27 @@ _cached_eval() {
     local name="$1" bin="$2"; shift 2
     local cache="$HOME/.cache/bash_init/${name}.sh"
     local bin_path
-    # support both full path and command name
+    # support both full path and command name. `hash` + BASH_CMDS resolves it
+    # without forking; no realpath needed since -nt below follows symlinks.
     if [[ "$bin" == /* ]]; then
         bin_path="$bin"
     else
-        bin_path=$(command -v "$bin" 2>/dev/null) || return
-        bin_path=$(realpath "$bin_path" 2>/dev/null || echo "$bin_path")
+        hash "$bin" 2>/dev/null || return
+        bin_path=${BASH_CMDS[$bin]}
     fi
     [[ -x "$bin_path" ]] || return
-    mkdir -p "$HOME/.cache/bash_init"
+    [[ -d "$HOME/.cache/bash_init" ]] || mkdir -p "$HOME/.cache/bash_init"
     if [[ ! -f "$cache" || "$bin_path" -nt "$cache" ]]; then
         "$@" > "$cache" 2>/dev/null
     fi
     source "$cache"
 }
 
-_cached_eval mise "$HOME/.local/bin/mise" "$HOME/.local/bin/mise" activate bash
+# Not cached: `mise activate` bakes the *current* PATH (and, in a shell nested
+# in another mise-activated one, an undo of the parent's env) into its output,
+# so a cached copy would reset every new shell's PATH to a stale snapshot.
+# It only costs ~5ms; the expensive part is the hook-env it runs anyway.
+[[ -x "$HOME/.local/bin/mise" ]] && eval "$("$HOME/.local/bin/mise" activate bash)"
 # ^^^ packages installed by mise must come after this line
 
 # herdr-assistant-resurrect: in a pane restored after reboot, resume its agent.
@@ -95,7 +107,7 @@ _cached_eval mise "$HOME/.local/bin/mise" "$HOME/.local/bin/mise" activate bash
 # re-launching with the flag is cheaper than keeping this path alive.
 # Delete the next line to bring the DIY resume back.
 export HERDR_NO_RESURRECT=1
-if [[ $- == *i* ]] && [[ -n "${HERDR_ENV:-}" ]]; then
+if [[ $- == *i* ]] && [[ -n "${HERDR_ENV:-}" && -z "${HERDR_NO_RESURRECT:-}" ]]; then
   _hr_out="$("$HOME/.config/herdr/scripts/resurrect/restore-check.sh" 2>/dev/null || true)"
   [[ "$_hr_out" == RESUME\ * ]] && eval "exec ${_hr_out#RESUME }"
   unset _hr_out
@@ -103,11 +115,11 @@ fi
 
 # mise: 每天自動 self-update（背景執行，不阻塞開 shell；同一天多個 shell 只跑一次）
 _mise_daily_update() {
-    local stamp="$HOME/.cache/mise/last_self_update" today
-    today=$(date +%Y-%m-%d)
-    mkdir -p "$HOME/.cache/mise"
+    local stamp="$HOME/.cache/mise/last_self_update" today last
+    printf -v today '%(%Y-%m-%d)T' -1
+    [[ -d "$HOME/.cache/mise" ]] || mkdir -p "$HOME/.cache/mise"
     # 今天已檢查過就跳過
-    [[ -r "$stamp" && "$(cat "$stamp" 2>/dev/null)" == "$today" ]] && return
+    { read -r last <"$stamp"; } 2>/dev/null && [[ $last == "$today" ]] && return
     # 先寫戳記，避免同一天多個 shell 同時觸發
     echo "$today" > "$stamp"
     # 背景更新，只更新 mise 本體（--no-plugins），輸出存到 log
@@ -117,16 +129,18 @@ _mise_daily_update() {
 }
 # mise: 每天背景檢查工具是否有新版（只提醒，不自動升級，避免破壞可重現性）
 _mise_outdated_check() {
-    local stamp="$HOME/.cache/mise/last_outdated" today
-    today=$(date +%Y-%m-%d)
-    mkdir -p "$HOME/.cache/mise"
-    [[ -r "$stamp" && "$(cat "$stamp" 2>/dev/null)" == "$today" ]] && return
+    local stamp="$HOME/.cache/mise/last_outdated" today last
+    printf -v today '%(%Y-%m-%d)T' -1
+    [[ -d "$HOME/.cache/mise" ]] || mkdir -p "$HOME/.cache/mise"
+    { read -r last <"$stamp"; } 2>/dev/null && [[ $last == "$today" ]] && return
     echo "$today" > "$stamp"
     (
         local notice="$HOME/.cache/mise/notice" out n names
-        out=$("$HOME/.local/bin/mise" outdated 2>/dev/null | grep -v '^[[:space:]]*$')
-        [[ -z "$out" ]] && { rm -f "$notice"; exit; }        # 全部最新（或 mise 失敗）：清掉舊提示
+        out=$("$HOME/.local/bin/mise" outdated --no-header 2>/dev/null | grep -v '^[[:space:]]*$')
+        [[ -z "$out" ]] && { rm -f "$notice" "$notice.tools"; exit; }  # 全部最新（或 mise 失敗）：清掉舊提示
         n=$(printf '%s\n' "$out" | grep -c .)
+        # 記下要升級的工具：不帶參數的 mise upgrade 會把 config 裡每個工具都重新 resolve 一次
+        printf '%s\n' "$out" | awk '{print $1}' > "$notice.tools"
         names=$(printf '%s\n' "$out" | awk '{print $1}' | head -6 | paste -sd, - | sed 's/,/, /g')
         (( n > 6 )) && names="$names …"
         echo "$n 個工具可升級: $names（詳情: mise outdated；升級: mise upgrade）" > "$notice"
@@ -140,22 +154,25 @@ _mise_show_notice() {
     [[ -r "$n" ]] || return
     printf '\e[35m[mise]\e[m %s\n' "$(cat "$n")"
     rm -f "$n"
+    local tools=()
+    [[ -r "$n.tools" ]] && mapfile -t tools < "$n.tools"
+    rm -f "$n.tools"
     [[ $- == *i* ]] || return                    # 非互動 shell 不詢問
     local ans
     read -r -p $'\e[35m[mise]\e[m 現在升級全部? [Y/n] ' ans
     [[ "$ans" == [nN]* ]] && return              # 只有明確 n/no 才跳過
-    "$HOME/.local/bin/mise" upgrade
+    "$HOME/.local/bin/mise" upgrade "${tools[@]}"  # 只升級提示裡那幾個（舊版提示沒有清單時退回全部）
 }
 [[ $- == *i* ]] && command -v mise &>/dev/null && { _mise_show_notice; _mise_daily_update; _mise_outdated_check; }
 
 # dotfile: 每天偵測遠端是否有更新（背景 fetch，安全不覆蓋本地修改）
 _dotfile_daily_sync() {
     local repo="$HOME/.config"
-    local stamp="$HOME/.cache/dotfile/last_sync" today
+    local stamp="$HOME/.cache/dotfile/last_sync" today last
     [[ -d "$repo/.git" ]] || return
-    today=$(date +%Y-%m-%d)
-    mkdir -p "$HOME/.cache/dotfile"
-    [[ -r "$stamp" && "$(cat "$stamp" 2>/dev/null)" == "$today" ]] && return
+    printf -v today '%(%Y-%m-%d)T' -1
+    [[ -d "$HOME/.cache/dotfile" ]] || mkdir -p "$HOME/.cache/dotfile"
+    { read -r last <"$stamp"; } 2>/dev/null && [[ $last == "$today" ]] && return
     echo "$today" > "$stamp"
     (
         # BatchMode 避免 SSH 在背景卡在密碼提示
@@ -192,11 +209,11 @@ _dotfile_show_notice() {
 # ble.sh: 每天偵測 nightly 是否有新版（背景下載 tarball 比對 hash，不同才就地更新）
 _blesh_daily_update() {
     local dir="$HOME/.local/share/blesh"
-    local stamp="$HOME/.cache/blesh/last_update" today
+    local stamp="$HOME/.cache/blesh/last_update" today last
     [[ -f "$dir/ble.sh" ]] || return
-    today=$(date +%Y-%m-%d)
-    mkdir -p "$HOME/.cache/blesh"
-    [[ -r "$stamp" && "$(cat "$stamp" 2>/dev/null)" == "$today" ]] && return
+    printf -v today '%(%Y-%m-%d)T' -1
+    [[ -d "$HOME/.cache/blesh" ]] || mkdir -p "$HOME/.cache/blesh"
+    { read -r last <"$stamp"; } 2>/dev/null && [[ $last == "$today" ]] && return
     echo "$today" > "$stamp"
     (
         local notice="$HOME/.cache/blesh/notice"
@@ -256,7 +273,9 @@ _term_appearance_probe() {
   # Write the query to the tty directly: read -p sends its prompt to stderr,
   # which is easy to silence by accident, and then nothing ever asks.
   printf '\e]11;?\e\\' >/dev/tty 2>/dev/null || return 0
-  IFS= read -rs -d '\\' -t 0.3 reply </dev/tty 2>/dev/null
+  IFS= read -rs -d '\\' -t 0.6 reply </dev/tty 2>/dev/null
+  printf '%s' "$reply" >"$out.reply"   # keep the raw answer: an empty file here
+                                       # means the terminal ignored the query
   [[ $reply =~ rgb:([0-9a-fA-F]+)/([0-9a-fA-F]+)/([0-9a-fA-F]+) ]] || return 0
   local r=$((16#${BASH_REMATCH[1]:0:2})) g=$((16#${BASH_REMATCH[2]:0:2})) b=$((16#${BASH_REMATCH[3]:0:2}))
   # Rec. 709 luma; >50% brightness means a light background.
@@ -276,10 +295,34 @@ _term_appearance_probe() {
 _yazi_theme_sync() {
   local link=$HOME/.config/yazi/theme.toml want=theme-dark.toml
   [[ -d ${link%/*} ]] || return 0
-  [[ $(cat "${XDG_RUNTIME_DIR:-/tmp}/term-appearance" 2>/dev/null) == light ]] && want=theme-light.toml
+  local appearance=
+  { read -r appearance <"${XDG_RUNTIME_DIR:-/tmp}/term-appearance"; } 2>/dev/null
+  [[ $appearance == light ]] && want=theme-light.toml
   [[ $(readlink "$link" 2>/dev/null) == "$want" ]] || ln -sfnT "$want" "$link" 2>/dev/null
 }
 [[ $- == *i* ]] && _yazi_theme_sync
+
+# Not every terminal answers the OSC 11 query (Windows Terminal is a common
+# one that does not), and then nothing above can tell light from dark. Set it
+# by hand: `appearance light` / `appearance dark`. A terminal that does answer
+# overrides this at the next login shell.
+appearance() {
+  case ${1:-} in
+  auto)
+    _term_appearance_probe && _yazi_theme_sync
+    printf 'appearance: %s\n' "$(cat "${XDG_RUNTIME_DIR:-/tmp}/term-appearance" 2>/dev/null || echo 'terminal did not answer')"
+    ;;
+  light | dark)
+    printf '%s\n' "$1" >"${XDG_RUNTIME_DIR:-/tmp}/term-appearance"
+    _yazi_theme_sync
+    printf 'appearance: %s (reopen yazi/nvim to pick it up)\n' "$1"
+    ;;
+  *)
+    printf 'appearance: %s\n' "$(cat "${XDG_RUNTIME_DIR:-/tmp}/term-appearance" 2>/dev/null || echo 'unset — terminal never answered; use: appearance light|dark|auto')"
+    ;;
+  esac
+}
+
 
 # Prompt -> ble.sh status line, PS1 -> "> ". Must come before ble-attach; see
 # the header of ble_statusline.sh for why.
@@ -288,7 +331,23 @@ _yazi_theme_sync() {
 # Add this line at the end of .bashrc:
 [[ ! ${BLE_VERSION-} ]] || ble-attach
 
-command -v atuin &>/dev/null && eval "$(atuin init bash --disable-up-arrow)"
+# atuin: cached like the others. (Loading it before ble-attach was measured too:
+# no gain, its binding cost just moves into ble-attach.)
+_cached_eval atuin atuin atuin init bash --disable-up-arrow
+# atuin's ble.sh auto-suggest source runs `atuin search` (50-90ms) in a plain
+# $(...), so every keystroke typed meanwhile waits for it. Same source, but via
+# conditional-sync: the search is killed as soon as a key arrives.
+if [[ ${BLE_VERSION-} ]] && declare -F __atuin_history >/dev/null; then
+    function ble/complete/auto-complete/source:atuin-history {
+        local suggestion
+        ble/util/assign suggestion '
+            ble/util/conditional-sync \
+                "ATUIN_QUERY=\$_ble_edit_str exec atuin search --cmd-only --limit 1 --search-mode prefix" \
+                "! ble/decode/has-input" 32 progressive-weight' 2>/dev/null || return 1
+        [[ $suggestion == "$_ble_edit_str"?* ]] || return 1
+        ble/complete/auto-complete/enter h 0 "${suggestion:${#_ble_edit_str}}" '' "$suggestion"
+    }
+fi
 
 source ~/.config/bash/lscolors.sh
 source ~/.config/bash/git-completion.bash
@@ -311,10 +370,21 @@ export PAGER='less'
 export LESS='--mouse --wheel-lines=3'
 export PYTHONBREAKPOINT="ipdb.set_trace"
 
+# nnn: ; p toggles the preview-tui pane (patched to split herdr panes)
+export NNN_FIFO="/tmp/nnn.fifo"
+export NNN_PLUG='p:preview-tui'
+export NNN_BATTHEME='ansi'
+
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
-bleopt keymap_vi_mode_string_nmap=$'\e[1m-- NORMAL --\e[m'
-
 # herdr session switcher (detach-loop launcher: pick/new/delete/rename -> attach)
 alias hs='~/.config/herdr/scripts/herdr_sessions.sh'
+
+# broot's launcher is optional and generated locally by broot.
+_broot_launcher="${XDG_CONFIG_HOME:-$HOME/.config}/broot/launcher/bash/br"
+[[ -r "$_broot_launcher" ]] && source "$_broot_launcher"
+unset _broot_launcher
+
+# User-local tools (these directories may not exist on every machine).
+export PATH="$HOME/.opencode/bin:$HOME/.ocv/bin:$HOME/.local/bin:$PATH"

@@ -16,9 +16,9 @@ gui:
   showCommandLog: true # right-bottom log
   statusPanelView: allBranchesLog
 git:
-  pagers:
+  diffRenderers:
     - colorArg: always
-      pager: delta --dark --paging=never --line-numbers
+      command: delta --dark --paging=never --line-numbers
 keybinding:
   universal:
     return: 'q'

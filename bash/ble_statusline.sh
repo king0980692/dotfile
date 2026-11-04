@@ -33,29 +33,35 @@ else
 fi
 
 # The mode indicator is itself a prompt-expanded string, so the status line can
-# carry arbitrary content next to -- INSERT -- / -- NORMAL --.
-# The vi mode shows up as the colour of starship's character bubble (the last
-# one) — no -- INSERT -- text, no full-width bar. starship paints that bubble in
-# char_bg, so recolouring it is a substitution of that one RGB triple; the
-# symbol keeps starship's own fg, so the bubble still shows exit status too.
-_ble_sl_char_bg='50;63;56'   # = starship.toml [palettes.custom1] char_bg #323f38
+# carry arbitrary content next to the vi mode.
+# The vi mode is a bracketed tag after starship's segments, [~/x]...[NOR].
+# Colours are ANSI slots (0-7), not truecolor, so the terminal's own light/dark
+# palette decides the actual shade — same idea as the ble-face overrides.
 function ble/prompt/backslash:leon/statusline {
   ble/prompt/unit/add-hash '$_ble_sl_ver'
+  ble/prompt/unit/add-hash '$_ble_edit_overwrite_mode,$_ble_keymap_vi_single_command'
   local keymap=${prompt_vi_keymap-}
   if [[ $keymap ]]; then
     ble/prompt/unit/add-hash '$_ble_decode_keymap,${_ble_decode_keymap_stack[*]}'
   else
     ble/keymap:vi/script/get-vi-keymap
   fi
-  local mode
+  local tag
   case $keymap in
-  (vi_imap)         mode='38;66;47'  ;;  # insert  #26422f - green
-  (vi_nmap|vi_omap) mode='40;64;95'  ;;  # normal  #28405f - blue
-  (vi_xmap|vi_smap) mode='77;58;24'  ;;  # visual  #4d3a18 - amber
-  (vi_cmap)         mode='63;47;82'  ;;  # command #3f2f52 - purple
-  (*)               mode=$_ble_sl_char_bg ;;
+  (vi_imap)
+    if [[ $_ble_edit_overwrite_mode ]]; then
+      tag=$'\e[1;31mREP'
+    else
+      tag=$'\e[1;32mINS'
+    fi ;;
+  (vi_nmap|vi_omap) tag=$'\e[1;31mNOR' ;;
+  (vi_xmap|vi_smap) tag=$'\e[1;33mVIS' ;;
+  (vi_cmap)         tag=$'\e[1;35mCMD' ;;
   esac
-  ble/prompt/print "${_ble_sl_text//$_ble_sl_char_bg/$mode}"
+  [[ $tag ]] && tag="[$tag"$'\e[m]'
+  # starship's prompt ends in a separator space; put the tag before it.
+  local text=${_ble_sl_text%"${_ble_sl_text##*[! ]}"}
+  ble/prompt/print "$text$tag "
 }
 # lib/keymap.vi.sh is loaded lazily and re-declares this option with its own
 # default, so setting it here directly gets clobbered — defer until it loads.

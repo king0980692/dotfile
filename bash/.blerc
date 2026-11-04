@@ -1,18 +1,5 @@
 
 
-########################
-# Setting prompt colors
-########################
-
-get_color() { tput setaf "$1"; }
-
-# Can be changed to whatever color number you want (0-15)
-COL_USER="${color4:-$(get_color 12)}"     # Yellow-ish
-COL_HOST="${color6:-$(get_color 5)}"      # Blue-ish
-COL_PATH="${color2:-$(get_color 11)}"     # Cyan/Green-ish
-COL_ROOT="${color1:-$(get_color 1)}"      # Red
-COL_RESET="$(tput sgr0)"
-
 #######################################
 # Two-line dynamic prompt (root vs user)
 ########################################
@@ -34,27 +21,3 @@ ble-bind -m vi_nmap -f 'M-h' tmux-select-pane-L
 ble-bind -m vi_nmap -f 'M-j' tmux-select-pane-D
 ble-bind -m vi_nmap -f 'M-k' tmux-select-pane-U
 ble-bind -m vi_nmap -f 'M-l' tmux-select-pane-R
-
-function ble/prompt/backslash:my/vim-mode {
-  bleopt keymap_vi_mode_update_prompt:=1
-  case $_ble_decode_keymap in
-    (vi_[on]map) ble/prompt/print '(cmd)' ;;
-    (vi_imap)    ble/prompt/print '(ins)' ;;
-    (vi_smap)    ble/prompt/print '(sel)' ;;
-    (vi_xmap)    ble/prompt/print '(vis)' ;;
-  esac
-}
-
-
-# function ble/prompt/backslash:my/vim-mode {
-#   bleopt keymap_vi_mode_update_prompt:=1
-#   case $_ble_decode_keymap in
-#   (vi_[on]map) ble/prompt/print '(cmd)' ;;
-#   (vi_imap) ble/prompt/print '(ins)' ;;
-#   (vi_smap) ble/prompt/print '(sel)' ;;
-#   (vi_xmap) ble/prompt/print '(vis)' ;;
-#   esac
-# }
-# 
-# # 在 PS1 中使用自定義序列
-# PS1='blahblah\q{my/vim-mode}\$ '
