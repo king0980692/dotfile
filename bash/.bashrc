@@ -328,6 +328,42 @@ appearance() {
 }
 
 
+# Check the remote in the background, never pull automatically. The prompt hook
+# displays a cached result once per remote commit (including in ble.sh).
+_dotfiles_update_notice() {
+    local repo="${XDG_CONFIG_HOME:-$HOME/.config}" remote interval
+    local cache="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles-update/origin-main"
+    [[ ${DOTFILES_UPDATE_CHECK:-1} != 0 && -d "$repo/.git" ]] || return 0
+    if (( SECONDS >= ${_dotfiles_next_check:-0} )); then
+        interval=${DOTFILES_UPDATE_INTERVAL:-3600}
+        [[ $interval =~ ^[0-9]+$ ]] || interval=3600
+        interval=$((10#$interval))
+        # Clamp the shell-side schedule so a zero TTL does not spawn a process
+        # at every prompt; the worker still enforces its own cache TTL.
+        (( interval < 60 )) && interval=60
+        _dotfiles_next_check=$((SECONDS + interval))
+        bash "$repo/leon_scripts/dotfiles-update-check.sh" </dev/null >/dev/null 2>&1 &
+    fi
+    [[ -r "$cache" ]] || return 0
+    IFS= read -r remote < "$cache" || return 0
+    [[ $remote =~ ^[[:xdigit:]]{40}([[:xdigit:]]{24})?$ ]] || return 0
+    [[ $remote != "${_dotfiles_checked_remote:-}" ]] || return 0
+    _dotfiles_checked_remote=$remote
+    # If the remote commit is already an ancestor, this device is current or
+    # ahead. An unknown commit is treated as a possible update, not fetched.
+    if ! git -C "$repo" merge-base --is-ancestor "$remote" HEAD 2>/dev/null; then
+        printf '\n[dotfiles] origin/main 有新版本或已分歧；請先檢查 git status，再 fetch / pull。\n'
+        printf '  cd "%s" && git fetch origin && git status -sb\n\n' "$repo"
+    fi
+}
+if [[ ${DOTFILES_UPDATE_CHECK:-1} != 0 && -r "${XDG_CONFIG_HOME:-$HOME/.config}/leon_scripts/dotfiles-update-check.sh" ]]; then
+    if [[ ${PROMPT_COMMAND@a} == *a* ]]; then
+        PROMPT_COMMAND+=(_dotfiles_update_notice)
+    else
+        PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND$'\n'}_dotfiles_update_notice"
+    fi
+fi
+
 # Prompt -> ble.sh status line, PS1 -> "> ". Must come before ble-attach; see
 # the header of ble_statusline.sh for why.
 [[ ${BLE_VERSION-} ]] && source ~/.config/bash/ble_statusline.sh

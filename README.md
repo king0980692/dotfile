@@ -81,6 +81,12 @@ herdr plugin link "${XDG_CONFIG_HOME:-$HOME/.config}/herdr/plugins/local/herdr-s
 
 The linked manifest uses `mise where` to locate the pinned binary. Install or update it with `mise install`; restart Herdr or reload its plugin registration after changes. Do not use the upstream plugin's update action, which can replace the customized build.
 
+### Update notifications
+
+Interactive Bash checks `origin/main` in the background, at most once per hour by default. On the next prompt after a check, it warns if the remote commit is not already in the local history. It never fetches, pulls, changes the working tree, or prompts for credentials. The notification is advisory: inspect local changes before syncing.
+
+Set `DOTFILES_UPDATE_CHECK=0` before starting Bash to disable it, or set `DOTFILES_UPDATE_INTERVAL` to the check interval in seconds (prompt scheduling has a 60-second minimum). Offline or failed checks are silent and retried after the interval.
+
 ### Machine-specific settings
 
 - Herdr commands use `XDG_CONFIG_HOME` (or `~/.config`) instead of a fixed username. Restart or reload the Herdr server after changing its config.
