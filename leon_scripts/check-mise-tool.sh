@@ -27,27 +27,22 @@ fi
 # 使用 mise ls 檢查是否已安裝
 # 正規化名稱比對:backend 全名(如 aqua:openai/codex)也要能對到
 # registry 短名(codex)。把已安裝名字拆成 全名 / 去前綴 / basename 三種比。
-install_info=$(mise ls --installed 2>/dev/null | awk -v t="$tool_base" -v s="$tool_short" '
+install_info=$(COLUMNS=1000 mise ls --installed 2>/dev/null | awk -v t="$tool_base" -v s="$tool_short" '
   {
     name=$1
     nop=name; sub(/^[a-z]+:/, "", nop)      # 去 backend 前綴: aqua:openai/codex -> openai/codex
     base=nop; sub(/.*\//, "", base)          # basename:            openai/codex -> codex
-    if (name==t || nop==t || base==t || name==s || nop==s || base==s) { print; exit }
+    if (name==t || nop==t || base==t || name==s || nop==s || base==s) print
   }')
 
 if [ -n "$install_info" ]; then
-  # 檢查安裝來源
-  if echo "$install_info" | grep -q "/mise.toml"; then
-    # 檢查是否為當前目錄
-    current_dir=$(pwd)
-    if echo "$install_info" | grep -qE "\./mise.toml|${current_dir}/mise.toml"; then
-      echo "✓ 已安裝 (local)"
-    else
-      echo "✓ 已安裝 (global)"
-    fi
-  else
-    echo "✓ 已安裝 (global)"
-  fi
+  # 檢查安裝來源。同一工具可能有多個版本，只有被配置引用的版本才帶來源欄位
+  config_source=$(echo "$install_info" | grep -oE '[~/][^ ]*(\.toml|\.tool-versions)' | head -1)
+  case "$config_source" in
+    "")                    echo "✓ 已安裝" ;;
+    */.config/mise/*)      echo "✓ 已安裝 (global)" ;;
+    *)                     echo "✓ 已安裝 (local)" ;;
+  esac
 else
   echo "未安裝"
 fi

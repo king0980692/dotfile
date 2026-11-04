@@ -7,17 +7,14 @@ bleopt complete_auto_delay=100
 # bleopt prompt_ruler=$'\e[94m-'  # blue line
 bleopt prompt_ruler=$'\e[90m─'
 
-# bleopt keymap_vi_mode_string_nmap="-- NORMAL --"
-# bleopt keymap_vi_mode_string_nmap=$'NORMAL'
-
-
 bleopt complete_menu_style=align-nowrap
 bleopt menu_align_max=35
 bleopt menu_align_prefix='\e[1m%d:\e[m '
 
 # --- 智慧補全：TAB 用 fzf 模糊選單 + 大小寫不敏感 ---
 # 多個候選時 TAB 跳出 fzf 模糊搜尋（取代原生選單）
-ble-import integration/fzf-menu
+# -d: load on the first idle tick instead of during startup (it forks `column`).
+ble-import -d integration/fzf-menu
 # 只針對補全選單設高度：不用全域 FZF_DEFAULT_OPTS（避免 tmux-fzf 等繼承出錯）
 # local -x 把設定限制在這次補全的 fzf 子行程，不影響其他 fzf widget
 function ble/widget/fzf-menu-complete {
@@ -25,6 +22,7 @@ function ble/widget/fzf-menu-complete {
   # selects); ctrl-n/p still work too. Otherwise fzf's TAB = toggle-select.
   local -x FZF_DEFAULT_OPTS="${FZF_DEFAULT_OPTS-} --height=40% --min-height=10 --layout=reverse --border --bind=tab:down,btab:up"
   local bleopt_integration_fzf_menu_enabled=1
+  ble-import integration/fzf-menu   # no-op once the delayed import has run
   ble/widget/complete
 }
 # 大小寫不敏感、- 與 _ 互通
@@ -36,10 +34,51 @@ ble-sabbrev J='| jqfzf_eval'
 ble-sabbrev -l '..'='cd ..'
 ble-sabbrev v='nvim'
 
-bleopt color_scheme=catppuccin_mocha
+# Colour scheme follows the terminal appearance, like LS_COLORS, the nvim
+# background and the yazi theme (see _term_appearance_probe in .bashrc).
+# catppuccin_mocha is dark-only: its 35 bare-foreground faces measure a median
+# 1.77:1 on white (argument_option #f2cdcd is 1.46:1), which is why command
+# options were washed out in light mode. rosepine_dawn is the light counterpart
+# (median 3.42:1 on white vs mocha's 1.89:1 for the same palette entries).
+# The explicit ble-face overrides below are set after this and use ANSI palette
+# slots, so they keep working under either scheme.
+# Loading a scheme runs ~70 ble-face calls (~60ms measured), all inside
+# ble-attach, i.e. before the first prompt. Run it on the first idle tick
+# instead: the prompt and statusline carry their own escapes, and the command
+# line is still empty then, so nothing is drawn with the default faces.
+function leon/ble/apply-faces {
+  local appearance=
+  { read -r appearance <"${XDG_RUNTIME_DIR:-/tmp}/term-appearance"; } 2>/dev/null
+  if [[ $appearance == light ]]; then
+    bleopt color_scheme=rosepine_dawn
+  else
+    bleopt color_scheme=catppuccin_mocha
+  fi
 
-ble-face auto_complete='fg=#a6adc8,italic'  # catppuccin_mocha的太淺
-ble-face syntax_error=none # syntax_error 有顏色讓我很不爽
+  # Auto-suggestion: ANSI index 8 (bright black) instead of a hard-coded
+  # truecolor, so it follows the terminal palette on a light background too.
+  # The scheme's own #45475a was too dark on a dark background, and the
+  # #a6adc8 that replaced it was ~2:1 on a light one — index 8 fixes both.
+  ble-face auto_complete='fg=8,italic'
+
+  # The catppuccin_mocha scheme paints every command face in hard-coded truecolor
+  # tuned for a dark background (command_file = Sapphire #74c7ec: 8.7:1 on
+  # #1e1e2e but only 1.7:1 on white). Re-point them at the *normal* ANSI slots
+  # (0-7), which terminals render dark on a light theme and light on a dark one,
+  # so they follow the palette. Names map to: navy=4 teal=6 purple=5 olive=3.
+  ble-face command_file='fg=teal'      # valid binary   (was Sapphire  #74c7ec)
+  ble-face command_alias='fg=teal'     #                (was Sapphire)
+  ble-face command_function='fg=teal'  #                (was Sapphire)
+  ble-face command_builtin='fg=olive'  #                (was Peach     #fab387)
+  ble-face command_directory='fg=navy' #                (was Blue      #89b4fa)
+  ble-face command_keyword='fg=purple' #                (was Mauve     #cba6f7)
+  ble-face syntax_error=none # syntax_error 有顏色讓我很不爽
+}
+if ble/is-function ble/util/idle.push; then
+  ble/util/idle.push leon/ble/apply-faces
+else
+  leon/ble/apply-faces
+fi
 
 ble-bind -m 'menu_complete' -f 'C-h' 'menu/backward-column'
 ble-bind -m 'menu_complete' -f 'C-l' 'menu/forward-column'
@@ -53,17 +92,12 @@ ble-bind -f 'RET' accept-line
 ble-bind -m vi_imap -f 'C-i' fzf-menu-complete
 ble-bind -m vi_imap -f 'TAB' fzf-menu-complete
 
-
-
-
-
 set -o vi
 ble-bind -m vi_imap -f 'j j' 'vi_imap/normal-mode'
 ble-bind -m vi_imap -f 'C-c' discard-line
 ble-bind -m vi_nmap -f 'C-c' discard-line
 ble-bind -m vi_imap -f 'C-p' 'history-prev'
 ble-bind -m vi_imap -f 'C-n' 'history-next'
-
 
 # Hook
 # https://github.com/akinomyoga/ble.sh/wiki/Manual-%C2%A71-Introduction#user-content-fn-blehook
@@ -99,7 +133,7 @@ function on_chpwd {
   fi
 }
 
-blehook CHPWD=on_chpwd
+# blehook CHPWD=on_chpwd
 
 # function vim_status_hook {
 #   local cmd="$1"

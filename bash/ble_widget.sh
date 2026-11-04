@@ -11,20 +11,37 @@ function ble/widget/zi_widget {
 
 }
 ble-bind -m 'vi_imap' -f 'M-c' 'zi_widget'
-ble-bind -m 'vi_imap' -f 'M-c' 'zi_widget'
 
 function ble/widget/fff_widget {
-  # 執行指定的 binary
-  # bash ~/.config/leon_scripts/fff
-  yazi
-  # fff
-  # echo -e 'ls\n'
-  # 執行完後，重繪提示符
-  # stty sane
-  # stty echo icanon
+  # 1. 建立一個臨時檔案儲存 yazi 退出時的最後路徑
+  local tmpfile
+  tmpfile=$(mktemp -t "yazi-cwd.XXXXXX")
+
+  # 2. 執行 yazi，並傳入 --cwd-file 紀錄離開時的路徑
+  # (如果是 fff，請改用 fff "$@" 後參考下方說明)
+  yazi --cwd-file="$tmpfile"
+
+  # 3. 讀取記錄下來的路徑
+  local target_dir
+  if [[ -f "$tmpfile" ]]; then
+    target_dir=$(cat "$tmpfile")
+    rm -f "$tmpfile"
+  fi
+
+  # 4. 如果路徑存在且與目前目錄不同，使用 gum 詢問使用者
+  if [[ -n "$target_dir" && "$target_dir" != "$PWD" ]]; then
+    # if gum confirm "Navigate to $target_dir?"; then
+    cd -- "$target_dir" || return
+    if [[ $PWD != "$oldpwd" ]] && declare -f on_chpwd >/dev/null; then
+      on_chpwd
+    fi
+    # fi
+  fi
+
+  # 5. 執行完後，重繪 ble.sh 提示符號與命令列
   ble/widget/redraw-line
 }
-ble-bind -m 'vi_imap' -f 'C-o' 'fff_widget'
+ble-bind -m 'vi_imap' -f 'M-o' 'fff_widget'
 ble-bind -m 'vi_imap' -f 'M-f' 'fff_widget'
 # ble-bind -m 'vi_nmap' -f 'M-f' 'fff_widget'
 
@@ -51,7 +68,6 @@ function ble/widget/fzf_search_widget {
   ble/widget/redraw-line
 }
 ble-bind -m 'vi_imap' -f 'C-t' 'fzf_search_widget'
-# ble-bind -m 'vi_nmap' -f 'C-t' 'fzf_search_widget'
 
 function ble/widget/fzf_grep_widget {
   # 執行指定的 binary

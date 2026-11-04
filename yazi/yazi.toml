@@ -1,6 +1,56 @@
 [mgr]
-ratio          = [ 0, 1, 3 ]
+ratio          = [ 0, 3, 7 ]
 # sort_by        = "alphabetical"
 sort_sensitive = false
 sort_reverse   = false
+linemode       = "size"
 
+[preview]
+wrap           = "yes"
+tab_size       = 2
+image_quality  = 90
+
+
+# Only the three "hand it to the OS" openers are redirected; yazi's own rules
+# (text -> $EDITOR, archives -> extract, trash, ...) are left untouched, so the
+# default [open] rules still apply.
+#
+# smart-open.sh picks the handler from where the terminal actually is:
+# local WSL -> Windows, over ssh -> stay in the terminal. block = true because
+# the ssh path runs TUI viewers that need the tty; the script detaches GUI
+# launches itself so yazi unblocks immediately.
+[opener]
+open = [
+  { run = '"$HOME"/.config/leon_scripts/smart-open.sh %s', desc = "Open", for = "unix", block = true },
+]
+play = [
+  { run = '"$HOME"/.config/leon_scripts/smart-open.sh %s', desc = "Play", for = "unix", block = true },
+]
+reveal = [
+  { run = '"$HOME"/.config/leon_scripts/smart-open.sh %d1', desc = "Reveal", for = "unix", block = true },
+]
+
+# Every popup opens in the middle of the screen. yazi's defaults put the input
+# prompts at top-center and anchor rename / the open picker to the hovered
+# file; the delete/trash/overwrite/quit confirms are already centred.
+# offset = [ x, y, width, height ]; with origin "center", x/y shift from the
+# middle, so they are 0.
+[input]
+cd_origin     = "center"
+cd_offset     = [ 0, 0, 50, 3 ]
+create_origin = "center"
+create_offset = [ 0, 0, 50, 3 ]
+rename_origin = "center"
+rename_offset = [ 0, 0, 50, 3 ]
+filter_origin = "center"
+filter_offset = [ 0, 0, 50, 3 ]
+find_origin   = "center"
+find_offset   = [ 0, 0, 50, 3 ]
+search_origin = "center"
+search_offset = [ 0, 0, 50, 3 ]
+shell_origin  = "center"
+shell_offset  = [ 0, 0, 50, 3 ]
+
+[pick]
+open_origin = "center"
+open_offset = [ 0, 0, 50, 7 ]

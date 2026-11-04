@@ -1,0 +1,32 @@
+# Enter walks into directories instead of opening them; opening is explicit.
+#
+#   <Enter>  enter  (same as l / <Right>; a no-op on a plain file)
+#   o        open   (yazi default, unchanged — goes through smart-open.sh,
+#                    see yazi.toml [opener])
+#
+# Range selection on V, as in vim's linewise visual (one entry per line here).
+# Swapped with yazi's defaults rather than dropped, so unset mode stays on v.
+[mgr]
+prepend_keymap = [
+	{ on = "<Enter>", run = "enter", desc = "Enter the child directory" },
+	{ on = "V", run = "visual_mode",         desc = "Enter visual mode (selection mode)" },
+	{ on = "v", run = "visual_mode --unset", desc = "Enter visual mode (unset mode)" },
+	# Default is [ "toggle", "arrow 1" ]; keep the cursor on the toggled entry.
+	{ on = "<Space>", run = "toggle", desc = "Toggle the current selection state" },
+	# s r: put an scp command for the hovered/selected files on the ssh client's
+	# clipboard (plugins/scp-back.yazi). Binding a chord on s turns s into a
+	# prefix, so yazi's default s (search by name via fd) moves to s s.
+	{ on = [ "s", "r" ], run = "plugin scp-back", desc = "Copy scp-back command to the ssh client's clipboard" },
+	{ on = [ "s", "s" ], run = "search --via=fd", desc = "Search files by name via fd" },
+	# ? toggles help instead of "find previous" (after a / search, N still steps
+	# backwards). Help opens with its filter input focused, so a second ? would
+	# just be typed into the filter; help:escape drops it straight into normal
+	# mode, where the [help] entry below closes it. The cost: no type-to-filter
+	# when opened this way — ~ and <F1> (yazi defaults) still open it filtering.
+	{ on = "?", run = [ "help", "help:escape" ], desc = "Toggle help" },
+]
+
+[help]
+prepend_keymap = [
+	{ on = "?", run = "close", desc = "Toggle help" },
+]

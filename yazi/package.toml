@@ -1,12 +1,34 @@
-[plugin]
-deps = []
+[[plugin.deps]]
+use = "yazi-rs/plugins:full-border"
+rev = "58c4f4e"
+hash = "f281261ff04ad7ec867c3f802a50835f"
+
+[[plugin.deps]]
+use = "yazi-rs/plugins:no-status"
+rev = "6229767"
+hash = "3e023d31f29201efdac2a6ae35fedb78"
 
 [[flavor.deps]]
 use = "956MB/vscode-dark-modern"
 rev = "cd60541"
-hash = "f970182bee3543831796629ccf078553"
+hash = "d1134a80fdf8df043b2497846f137f04"
 
 [[flavor.deps]]
 use = "956MB/vscode-light-modern"
 rev = "c054b12"
-hash = "87265fb9bc07de76c0c9c916c84cc8b5"
+hash = "10f04a5fcf3a8fa7a118ed2aeca7ff04"
+
+[[flavor.deps]]
+use = "yazi-rs/flavors:catppuccin-mocha"
+rev = "20b47bf"
+hash = "ce320f877fe709b189433941aba747c4"
+
+[[flavor.deps]]
+use = "dangooddd/kanagawa"
+rev = "04985d1"
+hash = "c69a63981e254a3a06a11c2bf0e6af1d"
+
+[[flavor.deps]]
+use = "muratoffalex/kanagawa-lotus"
+rev = "adc1be6"
+hash = "e07042bfc3177c35d5e0723414e8bfaf"

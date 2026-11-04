@@ -9,12 +9,23 @@ info()  { printf '\033[1;34m[INFO]\033[0m %s\n' "$*"; }
 warn()  { printf '\033[1;33m[WARN]\033[0m %s\n' "$*"; }
 error() { printf '\033[1;31m[ERROR]\033[0m %s\n' "$*"; exit 1; }
 
-# ── 0. Ensure locale ───────────────────────────────────────────────
-if ! locale -a 2>/dev/null | grep -qi 'en_US\.utf.*8'; then
-    info "Generating en_US.UTF-8 locale..."
-    sudo locale-gen en_US.UTF-8
-    sudo update-locale LANG=en_US.UTF-8
-fi
+# ── 0. Platform prerequisites ─────────────────────────────────────
+os=$(uname -s)
+case "$os" in
+    Darwin)
+        # The system Bash is sufficient to bootstrap mise; mise installs Bash 5.
+        info "macOS detected; source-built tools require Xcode Command Line Tools."
+        ;;
+    Linux)
+        if ! locale -a 2>/dev/null | grep -qi 'en_US[._-]utf[-_]*8'; then
+            warn "en_US.UTF-8 locale is unavailable. Generate it with your distribution's locale tools."
+        fi
+        ;;
+    *) error "Unsupported operating system: $os (supported: macOS and Linux)." ;;
+esac
+for tool in git curl tar make; do
+    command -v "$tool" >/dev/null 2>&1 || error "Required command not found: $tool"
+done
 
 # ── 1. Clone dotfiles ──────────────────────────────────────────────
 if [ -d "$XDG_CONFIG_HOME/.git" ]; then
@@ -50,9 +61,15 @@ export PATH="$HOME/.local/bin:$PATH"
 if [ -z "${MISE_GITHUB_TOKEN:-${GITHUB_TOKEN:-}}" ]; then
     warn "No GitHub token found. mise may hit rate limits."
     warn "Create one at: https://github.com/settings/tokens (no scopes needed)"
-    read -rp "  Paste your GitHub token (or press Enter to skip): " gh_token
-    if [ -n "$gh_token" ]; then
-        export MISE_GITHUB_TOKEN="$gh_token"
+    if [ -t 0 ]; then
+        read -rsp "  Paste your GitHub token (or press Enter to skip): " gh_token
+        printf '\n'
+        if [ -n "$gh_token" ]; then
+            export MISE_GITHUB_TOKEN="$gh_token"
+        fi
+        unset gh_token
+    else
+        warn "No interactive input available; continuing without a token."
     fi
 else
     export MISE_GITHUB_TOKEN="${MISE_GITHUB_TOKEN:-$GITHUB_TOKEN}"
@@ -61,6 +78,10 @@ fi
 # ── 4. Install all tools via mise ──────────────────────────────────
 info "Installing tools from mise config..."
 mise install --yes || warn "Some tools failed to install (may be rate-limited). Run 'mise install' again later."
+
+# Restore third-party Yazi plugins and flavors from the tracked package lock.
+info "Installing Yazi packages..."
+mise exec -- ya pkg install || warn "Yazi packages failed to install. Run 'mise exec -- ya pkg install' again later."
 
 # ── 4. Install ble.sh (prebuilt nightly, no make required) ────────
 if [ ! -d "$BLESH_DIR" ]; then
@@ -98,7 +119,12 @@ info "========================================="
 info " Installation complete!"
 info "========================================="
 info ""
-info " Restart your shell or run:  exec bash"
+if [ "$os" = Darwin ]; then
+    info " Start mise-managed Bash: exec \"$(mise where bash)/bin/bash\""
+    info " For login shells, source ~/.bashrc from ~/.bash_profile."
+else
+    info " Restart your shell or run:  exec bash"
+fi
 info ""
 info " In tmux, press prefix + I to install tmux plugins."
 info ""

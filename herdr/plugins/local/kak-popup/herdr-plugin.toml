@@ -1,0 +1,23 @@
+# kak-popup — floating popup host for Kakoune (kak/herdr.kak).
+#
+# Kakoune has no run-shell, so :terminal and every fzf/yazi picker delegate
+# to the herdr windowing module, which opens this plugin's pane with
+# `herdr plugin pane open --placement popup` instead of a tiled split (the
+# only programmatic popup herdr exposes; [[keys.command]] popups are
+# config-level only). The full command line travels in KAK_POPUP_CMD, and
+# because the runner execs it, the popup closes itself when the program
+# exits — same lifecycle as the split it replaces.
+id = "kak-popup"
+name = "kak-popup"
+version = "0.1.0"
+description = "Floating popup host for Kakoune terminal/picker commands."
+min_herdr_version = "0.7.0"
+platforms = ["linux", "macos"]
+
+# Sizes are passed per open by kak (80% x 70%), so the manifest only pins
+# the placement; command takes no arguments — run.sh reads the env.
+[[panes]]
+id = "kak-popup"
+title = "Kakoune"
+placement = "popup"
+command = ["sh", "-c", 'exec bash "${XDG_CONFIG_HOME:-$HOME/.config}/herdr/plugins/local/kak-popup/run.sh"']

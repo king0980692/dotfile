@@ -1,0 +1,25 @@
+# The parts of the yazi theme that are ours rather than the flavor's.
+# Merged on top of each flavor palette by leon_scripts/yazi-theme-gen.sh.
+# 深色 Kanagawa Wave，淺色 Kanagawa Lotus（成對）
+[status]
+left = ["mode", "size", "created", "modified"]
+right = ["permissions", "owner", "group"]
+# powerline 圓角分隔（Cascadia Mono NF 支援）
+sep_left = { open = "", close = "" }
+sep_right = { open = "", close = "" }
+
+[tabs]
+# 當前 tab 是嵌在圓角軌道裡的膠囊，跟狀態列、starship 泡泡同一套圓角。
+# yazi 用 fg=active.bg / bg=inactive.bg 畫 sep_inner，所以圓角會自動
+# 接上當前 tab 的底色，換 flavor（kanagawa / kanagawa-lotus）也不會接縫。
+sep_inner = { open = "", close = "" }
+sep_outer = { open = "", close = "" }
+
+# 刪除/覆寫確認框：flavor 沒包，自己補一套（Kanagawa 色票）
+[confirm]
+border = { fg = "#7fb4ca" }
+title = { fg = "#7fb4ca", bold = true }
+body = {}
+list = { fg = "#dcd7ba" }
+btn_yes = { reversed = true, bold = true }
+btn_no = {}
