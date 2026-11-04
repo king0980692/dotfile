@@ -1,0 +1,29 @@
+# Kakoune config (tracked by the dotfile repo).
+#
+# Layout:
+#   herdr.kak     herdr integration: windowing module for :terminal/:new and
+#                 OSC 52 yank; the light/dark colorscheme choice is below.
+#   pickers.kak   fzf + yazi pickers opened in a split pane, bound to the
+#                 same keys as the ble.sh widgets in bash/ble_widget.sh.
+#   scripts/      helpers that run inside the picker pane.
+
+# Vim muscle memory.
+add-highlighter global/ number-lines
+set global scrolloff 3,0
+
+# Follow the terminal's light/dark appearance, like nvim (nvim/init.lua),
+# ble.sh (bash/ble_config.sh) and yazi (theme.toml) do. The login shell
+# records the terminal's answer in $XDG_RUNTIME_DIR/term-appearance
+# (_term_appearance_probe in bash/.bashrc); herdr/tmux panes never answer an
+# OSC 11 query and Kakoune cannot ask in the first place, so that file is the
+# only source of truth. Ranges are fixed at startup, same as nvim's.
+evaluate-commands %sh{
+    if [ "$(cat "${XDG_RUNTIME_DIR:-/tmp}/term-appearance" 2>/dev/null)" = light ]; then
+        echo 'colorscheme github'
+    else
+        echo 'colorscheme palenight'
+    fi
+}
+
+source "%val{config}/herdr.kak"
+source "%val{config}/pickers.kak"

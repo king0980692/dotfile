@@ -1,0 +1,10 @@
+id = "leon.sidebar-autoclose"
+name = "Sidebar autoclose"
+version = "0.1.0"
+min_herdr_version = "0.9.0"
+description = "Close a herdr-sidebar pane once it is the last pane left in its tab"
+platforms = ["linux"]
+
+[[events]]
+on = "pane.closed"
+command = ["bash", "autoclose.sh"]

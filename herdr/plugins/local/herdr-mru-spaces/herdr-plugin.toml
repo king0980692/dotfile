@@ -1,0 +1,10 @@
+id = "leon.mru-spaces"
+name = "MRU Spaces"
+version = "0.1.0"
+min_herdr_version = "0.9.0"
+description = "Keep the Spaces sidebar in most-recently-used order"
+platforms = ["linux"]
+
+[[events]]
+on = "workspace.focused"
+command = ["bash", "mru.sh"]

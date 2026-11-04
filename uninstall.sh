@@ -13,7 +13,7 @@ echo "  ╚═══════════════════════
 echo ""
 echo "  This will remove:"
 echo "    - mise and all tools installed by it"
-echo "    - ble.sh"
+echo "    - ble.sh, kakoune"
 echo "    - tmux plugins"
 echo "    - Shell config symlinks (.bashrc, .blerc, .gitconfig)"
 echo "    - Dotfile repo from $XDG_CONFIG_HOME"
@@ -28,6 +28,11 @@ if command -v mise &>/dev/null || [ -x "$HOME/.local/bin/mise" ]; then
     "$HOME/.local/bin/mise" implode --yes 2>/dev/null || true
 fi
 rm -rf "$HOME/.local/share/mise" "$HOME/.local/bin/mise"
+
+# Remove kakoune (extracted from the Debian package by install.sh)
+info "Removing kakoune..."
+rm -rf "$HOME/.local/share/kakoune"
+rm -f "$HOME/.local/bin/kak"
 
 # ── 2. Remove ble.sh ──────────────────────────────────────────────
 info "Removing ble.sh..."
@@ -52,7 +57,7 @@ fi
 
 # ── 5. Remove dotfile configs ─────────────────────────────────────
 info "Removing dotfile config directories..."
-MANAGED_DIRS=(bash nvim mise tmux leon_scripts lazygit yazi git)
+MANAGED_DIRS=(bash nvim mise tmux leon_scripts lazygit yazi kak git)
 for dir in "${MANAGED_DIRS[@]}"; do
     rm -rf "${XDG_CONFIG_HOME:?}/$dir"
 done

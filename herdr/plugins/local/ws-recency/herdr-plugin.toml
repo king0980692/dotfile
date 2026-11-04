@@ -1,0 +1,14 @@
+id = "leon.ws-recency"
+name = "Workspace recency"
+version = "0.2.0"
+min_herdr_version = "0.9.0"
+description = "Record workspace visits and agent activity for the M-s switcher (MRU order, LAST column)"
+platforms = ["linux"]
+
+[[events]]
+on = "workspace.focused"
+command = ["bash", "stamp.sh"]
+
+[[events]]
+on = "pane.agent_status_changed"
+command = ["bash", "activity.sh"]

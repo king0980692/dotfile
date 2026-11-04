@@ -14,6 +14,7 @@ Personal dotfile configs for bash + ble.sh + nvim + mise + tmux and more.
 | `starship.toml` | Starship prompt config |
 | `lazygit/` | Lazygit config |
 | `yazi/` | Yazi file manager config |
+| `kak/` | Kakoune editor: herdr popup windowing via `herdr/plugins/local/kak-popup`, OSC 52 clipboard, fzf/yazi pickers |
 | `git/` | Git global ignore |
 | `.gitconfig` | Git config (delta pager, zdiff3 merge) |
 
@@ -59,9 +60,10 @@ In tmux, press `prefix + I` to install tmux plugins.
 1. Clones the dotfile repo and merges into `~/.config` (existing configs untouched)
 2. Installs **mise** → installs all 35+ CLI tools
 3. Installs **ble.sh** (bash line editor)
-4. Symlinks `~/.bashrc` → `~/.config/bash/.bashrc`
-5. Symlinks `~/.gitconfig`
-6. Installs **TPM** (tmux plugin manager)
+4. Installs **kakoune** (Debian package extracted without root — not in mise's registry; needs `apt-get`)
+5. Symlinks `~/.bashrc` → `~/.config/bash/.bashrc`
+6. Symlinks `~/.gitconfig`
+7. Installs **TPM** (tmux plugin manager)
 
 ## Erase Everything
 
@@ -72,7 +74,7 @@ In tmux, press `prefix + I` to install tmux plugins.
 ### What uninstall.sh does
 
 1. Runs `mise implode` — removes all mise-managed tools
-2. Removes ble.sh, tmux plugins
+2. Removes ble.sh, tmux plugins, kakoune
 3. Removes symlinks, restores default `.bashrc`
 4. Deletes all managed config dirs from `~/.config`
 5. Cleans usage traces: `.bash_history`, nvim cache/state, atuin, zoxide, starship cache, bun, cargo/rustup

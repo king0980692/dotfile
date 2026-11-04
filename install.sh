@@ -75,6 +75,28 @@ else
     info "ble.sh already installed"
 fi
 
+# ── 4b. Install kakoune (Debian package, extracted without root) ──
+# Not in mise's registry; extract usr/ of the .deb so bin/kak and
+# share/kak stay siblings (kak finds its runtime as ../share/kak).
+if ! command -v kak &>/dev/null && [ ! -x "$HOME/.local/bin/kak" ]; then
+    info "Installing kakoune..."
+    tmpdir=$(mktemp -d)
+    if (cd "$tmpdir" && apt-get download kakoune >/dev/null 2>&1) \
+        && ls "$tmpdir"/kakoune_*.deb >/dev/null 2>&1; then
+        dpkg-deb -x "$tmpdir"/kakoune_*.deb "$tmpdir/x"
+        rm -rf "$HOME/.local/share/kakoune"
+        mkdir -p "$HOME/.local/share/kakoune" "$HOME/.local/bin"
+        mv "$tmpdir/x/usr"/* "$HOME/.local/share/kakoune/"
+        ln -sfn "$HOME/.local/share/kakoune/bin/kak" "$HOME/.local/bin/kak"
+        info "kakoune installed to ~/.local/bin/kak"
+    else
+        warn "kakoune package download failed (needs apt-get on Debian/Ubuntu); install it manually."
+    fi
+    rm -rf "$tmpdir"
+else
+    info "kakoune already installed"
+fi
+
 # ── 5. Symlink .bashrc & .blerc ────────────────────────────────────
 info "Symlinking shell configs..."
 ln -sfn "$XDG_CONFIG_HOME/bash/.bashrc" "$HOME/.bashrc"
