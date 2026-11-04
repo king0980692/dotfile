@@ -1,13 +1,19 @@
 command = /run/current-system/sw/bin/bash
+
+
 # Theme
-theme = dark:Vague,light:Rose Pine Dawn
+theme = dark:Ultra Dark,light:Electron Highlighter Day
 font-family = "Cascadia Mono NF"
 font-synthetic-style = false
 font-size = 17
 
 # Custom Shader
 # See https://github.com/sahaj-b/ghostty-cursor-shaders
-custom-shader = shaders/cursor_warp.glsl
+# custom-shader = shaders/cursor_warp.glsl
+# custom-shader = shaders/shader.glsl
+
+# Daily Unsplash wallpaper (managed by ghostty-wallpaper-update)
+# config-file = ?wallpaper.conf
 
 # Window
 window-height = 50
@@ -101,6 +107,7 @@ keybind = super+k=text:\x1bk
 keybind = super+l=text:\x1bl
 keybind = super+c=text:\x1bc
 keybind = super+i=text:\x1bi
+keybind = super+b=text:\x1bb
 
 # Pane resize (M-Left/Right/Up/Down)
 keybind = super+left=text:\x1b[1;3D
@@ -115,7 +122,6 @@ keybind = super+5=text:\x1b5
 
 # Session switcher
 keybind = super+s=text:\x1bs
-
-
-
+keybind = super+o=text:\x1bo
+keybind = super+n=text:\x1bn
 

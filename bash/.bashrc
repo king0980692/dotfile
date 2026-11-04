@@ -302,7 +302,7 @@ _yazi_theme_sync() {
   local appearance=
   { read -r appearance <"${XDG_RUNTIME_DIR:-/tmp}/term-appearance"; } 2>/dev/null
   [[ $appearance == light ]] && want=theme-light.toml
-  [[ $(readlink "$link" 2>/dev/null) == "$want" ]] || ln -sfnT "$want" "$link" 2>/dev/null
+  [[ $(readlink "$link" 2>/dev/null) == "$want" ]] || ln -sfn "$want" "$link" 2>/dev/null
 }
 [[ $- == *i* ]] && _yazi_theme_sync
 
@@ -353,6 +353,16 @@ if [[ ${BLE_VERSION-} ]] && declare -F __atuin_history >/dev/null; then
     }
 fi
 
+# atuin AI: `atuin init` 只把 ? 綁在 emacs keymap，這裡補上 vi-insert，
+# 之後若切到 ble.sh 的 vi keymap 也能用。vi_nmap 的 ? 是往回搜尋，保留不動。
+if declare -F _atuin_ai_question_mark &>/dev/null; then
+    if [[ ${BLE_VERSION-} ]]; then
+        ble-bind -m vi_imap -x '?' _atuin_ai_question_mark
+    else
+        bind -m vi-insert -x '"?": _atuin_ai_question_mark'
+    fi
+fi
+
 source ~/.config/bash/lscolors.sh
 source ~/.config/bash/git-completion.bash
 source ~/.config/bash/git_alias.sh
@@ -385,6 +395,12 @@ export NNN_BATTHEME='ansi'
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
+# keymap_vi_mode_string_nmap 定義在 blesh 的 lib/keymap.vi.sh，只有 vi keymap
+# 真的載入後才存在。目前是 emacs keymap，直接設會噴 `option not found`，
+# 所以延後到 vi keymap 載入時才套用。
+_my_vi_nmap_string=$'\e[1m-- NORMAL --\e[m'
+[[ ${BLE_VERSION-} ]] && blehook/eval-after-load keymap_vi 'bleopt keymap_vi_mode_string_nmap="$_my_vi_nmap_string"'
+
 # herdr session switcher (detach-loop launcher: pick/new/delete/rename -> attach)
 alias hs='~/.config/herdr/scripts/herdr_sessions.sh'
 
@@ -395,3 +411,13 @@ unset _broot_launcher
 
 # User-local tools (these directories may not exist on every machine).
 export PATH="$HOME/.opencode/bin:$HOME/.ocv/bin:$HOME/.local/bin:$PATH"
+# herdr thin client -> 遠端 herdr server（走 ~/.ssh/config 的 Host 名稱）。
+# 第一次連會問要不要在遠端裝相同版本的 herdr binary，答 y 即可。
+alias hleon='herdr --remote leon'
+alias hgx10='herdr --remote gx10'
+
+# Google Cloud CLI (dedicated venv: py3.14 + grpcio, needed by `gcloud beta interactive`)
+export CLOUDSDK_PYTHON="$HOME/.local/share/gcloud-venv/bin/python"
+export CLOUDSDK_PYTHON_SITEPACKAGES=1
+[[ -f "$HOME/google-cloud-sdk/path.bash.inc" ]] && source "$HOME/google-cloud-sdk/path.bash.inc"
+[[ -f "$HOME/google-cloud-sdk/completion.bash.inc" ]] && source "$HOME/google-cloud-sdk/completion.bash.inc"

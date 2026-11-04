@@ -1,5 +1,5 @@
 [mgr]
-ratio          = [ 0, 3, 7 ]
+ratio          = [ 1, 2, 5 ]
 # sort_by        = "alphabetical"
 sort_sensitive = false
 sort_reverse   = false

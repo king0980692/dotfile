@@ -239,6 +239,11 @@ tab_bar_right = [
 # Let split panes share one divider instead of keeping a separating gap
 # (herdr's default is true = separated). tmux-style: one line between panes.
 # pane_gaps = false
+pane_gaps = false
+pane_outer_borders = false
+sidebar_width     = 22
+sidebar_min_width = 14
+sidebar_max_width = 40
 
 # Two more knobs if it is still not tight enough — both default true:
   # pane_outer_borders = true   # drop the frame around the whole layout
@@ -265,12 +270,13 @@ tab_bar_right = [
 # Agents (priority/flat view): line 1 = status icon + workspace, line 2 = what
 # the agent is doing (cleaned terminal title). Tells you at a glance which agent
 # is where and what it's working on.
-# [ui.sidebar.agents]
-# row_gap = 0
-# rows = [
-#   [ "state_icon", { token = "workspace", bold = true } ],
-#   [ { token = "terminal_title_stripped", dim = true } ],
-# ]
+status_indicators = "symbols"
+[ui.sidebar.agents]
+row_gap = 0
+rows = [
+  [ "state_icon", { token = "workspace", bold = true } ],
+  [ { token = "terminal_title_stripped", dim = true } ],
+]
 
 # codex usually has no useful task title -> show its status text instead.
 # [ui.sidebar.agents.rows_by_agent]
@@ -309,13 +315,11 @@ tab_bar_right = [
 # switch_ascii_input_source_in_prefix = false
 
 [theme]
-name = "gruvbox"
+name = "terminal"
 auto_switch = false
 
 [ui.toast]
-# "terminal" (outer-terminal desktop notification) did not reach Windows here,
-# so stay with in-app toasts.
-delivery = "herdr"
+delivery = "terminal"
 
 # The default bottom-right never showed up on screen here; top-right does.
 [ui.toast.herdr]

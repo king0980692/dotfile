@@ -95,3 +95,12 @@ herdr/scripts/**/__pycache__/
 systemd/user/tw-market-*.service
 systemd/user/tw-market-*.timer
 systemd/user/timers.target.wants/tw-market-*.timer
+
+# macOS user agents
+!launchd/
+!launchd/**
+
+# Local secret and generated Ghostty wallpaper
+unsplash/access-key
+ghostty/wallpaper.jpg
+ghostty/wallpapers/

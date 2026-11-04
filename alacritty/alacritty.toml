@@ -7,7 +7,6 @@
 # appearance. Alacritty live-reloads imports, so the swap is instant.
 [general]
 import = ["~/.config/alacritty/theme.toml"]
-
 # ── Font ────────────────────────────────────────────────
 [font]
 size = 17.0
@@ -20,10 +19,12 @@ family = "Cascadia Mono NF"
 # ── Window ──────────────────────────────────────────────
 [window]
 # ghostty window-width/height are in cells
-dimensions = { columns = 180, lines = 50 }
-padding = { x = 0, y = 0 }
+# dimensions = { columns = 180, lines = 50 }
+padding = { x = 0, y = 1 }
 # ghostty macos-option-as-alt = true
 option_as_alt = "Both"
+# decorations = "transparent"
+
 
 # ── Cursor ──────────────────────────────────────────────
 [cursor]
@@ -82,4 +83,6 @@ bindings = [
 
   # Session switcher
   { key = "S", mods = "Command", chars = "\u001bs" },
+
+  { key = "B", mods = "Command", chars = "\u001bb" },
 ]
