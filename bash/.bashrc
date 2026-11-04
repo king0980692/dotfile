@@ -169,47 +169,6 @@ _mise_show_notice() {
 }
 [[ $- == *i* ]] && command -v mise &>/dev/null && { _mise_show_notice; _mise_daily_update; _mise_outdated_check; }
 
-# dotfile: 每天偵測遠端是否有更新（背景 fetch，安全不覆蓋本地修改）
-_dotfile_daily_sync() {
-    local repo="$HOME/.config"
-    local stamp="$HOME/.cache/dotfile/last_sync" today last
-    [[ -d "$repo/.git" ]] || return
-    printf -v today '%(%Y-%m-%d)T' -1
-    [[ -d "$HOME/.cache/dotfile" ]] || mkdir -p "$HOME/.cache/dotfile"
-    { read -r last <"$stamp"; } 2>/dev/null && [[ $last == "$today" ]] && return
-    echo "$today" > "$stamp"
-    (
-        # BatchMode 避免 SSH 在背景卡在密碼提示
-        GIT_SSH_COMMAND='ssh -o BatchMode=yes -o ConnectTimeout=10' \
-            git -C "$repo" fetch --quiet origin 2>/dev/null || exit
-        local L R B notice="$HOME/.cache/dotfile/notice"
-        L=$(git -C "$repo" rev-parse @ 2>/dev/null)
-        R=$(git -C "$repo" rev-parse '@{u}' 2>/dev/null)
-        B=$(git -C "$repo" merge-base @ '@{u}' 2>/dev/null)
-        [[ -z "$R" || "$L" == "$R" ]] && exit                    # 沒 upstream 或已最新
-        if [[ "$L" == "$B" ]]; then                              # 落後遠端，可 fast-forward
-            if [[ -z "$(git -C "$repo" status --porcelain)" ]]; then
-                git -C "$repo" pull --ff-only --quiet \
-                    && echo "已自動更新到最新，建議重開 shell 生效。" > "$notice"
-            else
-                echo "遠端有更新，但本機有未提交變更。手動更新: cd ~/.config && git stash && git pull --ff-only && git stash pop" > "$notice"
-            fi
-        elif [[ "$R" == "$B" ]]; then                            # 遠端是本機祖先：只是還沒 push
-            echo "本機領先遠端 $(git -C "$repo" rev-list --count '@{u}..@') 個 commit，尚未 push: cd ~/.config && git push" > "$notice"
-        else                                                     # 真正分歧：兩邊都有對方沒有的 commit
-            echo "本機與遠端分歧，請手動處理: cd ~/.config && git status" > "$notice"
-        fi
-    ) &
-    disown 2>/dev/null
-}
-
-# 顯示上一次背景 sync 留下的提示（在下次開 shell 時）
-_dotfile_show_notice() {
-    local n="$HOME/.cache/dotfile/notice"
-    [[ -r "$n" ]] && { printf '\e[33m[dotfile]\e[m %s\n' "$(cat "$n")"; rm -f "$n"; }
-}
-[[ $- == *i* ]] && command -v git &>/dev/null && { _dotfile_show_notice; _dotfile_daily_sync; }
-
 # ble.sh: 每天偵測 nightly 是否有新版（背景下載 tarball 比對 hash，不同才就地更新）
 _blesh_daily_update() {
     local dir="$HOME/.local/share/blesh"
