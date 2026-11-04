@@ -28,7 +28,11 @@ alias vt='vim ~/.config/tmux/tmux.conf'
 alias vnv='vim ~/.config/nvim/init.lua'
 alias lg='lazygit'
 alias ..='cd ..'
-alias ls='ls --color=auto'
+if ls --color=auto -d . >/dev/null 2>&1; then
+    alias ls='ls --color=auto'
+elif [[ $(uname -s) == Darwin ]]; then
+    alias ls='ls -G'
+fi
 alias ll='ls -lh'
 alias la='ls -lah'
 alias l='ls'
@@ -361,8 +365,11 @@ for _brew in /opt/homebrew/bin/brew /usr/local/bin/brew \
 done
 unset _brew
 
-# GNU coreutils (for ls --color and other GNU tools)
-[[ -d "/opt/homebrew/opt/coreutils/libexec/gnubin" ]] && export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"
+# Use Homebrew coreutils if already installed; mise remains the tool manager.
+for _gnubin in /opt/homebrew/opt/coreutils/libexec/gnubin /usr/local/opt/coreutils/libexec/gnubin; do
+    [[ -d "$_gnubin" ]] && { export PATH="$_gnubin:$PATH"; break; }
+done
+unset _gnubin
 
 export PATH="$HOME/.config/leon_scripts/:$PATH"
 export EDITOR='nvim'

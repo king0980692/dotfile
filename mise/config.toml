@@ -1,4 +1,12 @@
+[plugins]
+bash = "https://github.com/XaF/asdf-bash.git#8dcfed4ba5fb1bd6a2b05dc5ea93e1b97a7391d8"
+kakoune = "https://github.com/gzh2003/asdf-kakoune.git#59d3fde51a91c2e096cfe2a311d091d521cdd9f2"
+nnn = "https://github.com/benit8/asdf-nnn.git#2fa65695974852a03a5256d46cc421fb37972f40"
+
 [tools]
+bash = "5.2"
+kakoune = "latest"
+nnn = "5.3"
 atuin = "latest"
 bat = "latest"
 btop = "latest"
@@ -36,7 +44,6 @@ helix = "latest"
 tealdeer = "latest"
 dust = "latest"
 oh-my-pi = { version = "latest", rename_exe = "omp" }
-"github:jarun/nnn" = { version = "5.3", asset_pattern = "nnn-nerd-static-*.x86_64.tar.gz", rename_exe = "nnn" }
 "npm:ccusage" = "20.0.26"
 fastfetch = "latest"
 onefetch = "latest"

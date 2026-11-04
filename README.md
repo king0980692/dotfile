@@ -31,6 +31,8 @@ aichat, usage, fastfetch, crush
 
 ### Install on a new environment
 
+**Requirements:** Linux or macOS on x86_64 or ARM64, with Git, curl, tar (including xz support), make and a C/C++ toolchain. On macOS, install Xcode Command Line Tools (`xcode-select --install`). Bash, Kakoune and nnn are built from source by pinned mise/asdf plugins; nnn requires ncurses headers and libraries. Individual tools or builds may not be available on every platform; the installer warns if any fail.
+
 **One-liner:**
 
 ```bash
@@ -47,11 +49,20 @@ rm -rf /tmp/dotfile
 
 The script merges dotfiles into your existing `~/.config` without overwriting unrelated configs. **Back up first:** tracked files at the same paths and the shell/Git symlinks can be overwritten.
 
-Then restart your shell:
+Then restart your shell. On Linux:
 
 ```bash
 exec bash
 ```
+
+On macOS, start mise-managed Bash (the system Bash 3.2 is too old for this configuration):
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+exec "$(mise where bash)/bin/bash"
+```
+
+For Bash login shells on macOS, add `[[ -f ~/.bashrc ]] && source ~/.bashrc` to your existing `~/.bash_profile`. The installer does not change your default shell or login profile.
 
 In tmux, press `prefix + I` to install tmux plugins.
 
@@ -62,14 +73,15 @@ Yazi's third-party plugins and flavors are restored from `yazi/package.toml` by 
 - Herdr commands use `XDG_CONFIG_HOME` (or `~/.config`) instead of a fixed username. Restart or reload the Herdr server after changing its config.
 - The `tw-market-*` systemd user units are local-only: they depend on a particular TradingAgents checkout and are deliberately ignored by Git. Set them up separately on any machine that needs them.
 - The generated Yazi themes refer to syntax themes under `~/.config/yazi`; a non-default `XDG_CONFIG_HOME` needs those paths adjusted.
-- The mise `nnn` GitHub asset is currently pinned to x86_64; adjust it on other architectures. The installer also includes Debian/Ubuntu-specific commands.
+- Bash, nnn and Kakoune are mise-managed source builds using third-party asdf plugins pinned in `mise/config.toml`; their compilers and system libraries must be available before `mise install`. On Linux, ensure ncurses development headers and `en_US.UTF-8` are available. Kakoune requires a C++20 compiler. ble.sh, TPM and Yazi packages are still installed by their own mechanisms.
+- Older installations may still have a `~/.local/bin/kak` symlink to a previously extracted Debian package; remove that symlink if it shadows mise's Kakoune.
 
 ### What install.sh does
 
 1. Clones the dotfile repo and merges into `~/.config` (existing configs untouched)
-2. Installs **mise** → installs all 35+ CLI tools
+2. Installs **mise** → installs configured CLI tools and Yazi packages (availability varies by platform)
 3. Installs **ble.sh** (bash line editor)
-4. Installs **kakoune** (Debian package extracted without root — not in mise's registry; needs `apt-get`)
+4. Builds **Bash**, **Kakoune** and **nnn** through mise plugins (requires a toolchain and system libraries)
 5. Symlinks `~/.bashrc` → `~/.config/bash/.bashrc`
 6. Symlinks `~/.gitconfig`
 7. Installs **TPM** (tmux plugin manager)
@@ -83,7 +95,7 @@ Yazi's third-party plugins and flavors are restored from `yazi/package.toml` by 
 ### What uninstall.sh does
 
 1. Runs `mise implode` — removes all mise-managed tools
-2. Removes ble.sh, tmux plugins, kakoune
+2. Removes ble.sh, tmux plugins and any locally extracted legacy Kakoune
 3. Removes symlinks, restores default `.bashrc`
 4. Deletes all managed config dirs from `~/.config`
 5. Cleans usage traces: `.bash_history`, nvim cache/state, atuin, zoxide, starship cache, bun, cargo/rustup
