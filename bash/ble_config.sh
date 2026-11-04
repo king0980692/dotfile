@@ -129,7 +129,13 @@ function on_chpwd {
 
     clear
     printf '\e[48;5;238;38;5;255;1m %s \e[0m\e[38;5;245m%s  %s items\e[0m\n' "$dir_display" "$git_info" "$item_count"
-    ls -CF --group-directories-first --color=auto
+    if command -v gls >/dev/null 2>&1; then
+      command gls -CF --group-directories-first --color=auto
+    elif ls --group-directories-first -d . >/dev/null 2>&1; then
+      command ls -CF --group-directories-first --color=auto
+    else
+      command ls -CF -G
+    fi
   fi
 }
 
