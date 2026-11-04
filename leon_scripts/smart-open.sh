@@ -21,7 +21,17 @@ set -u
 
 die() { printf 'smart-open: %s\n' "$*" >&2; exit 1; }
 # yazi opens these with block=true; a handler that exits at once would flash by.
-pause() { [ -t 0 ] || return 0; printf '\n[press enter]'; read -r _ || true; }
+# Any single byte ends the wait, not a full line: yazi hands the tty over still
+# in raw mode (-icrnl -icanon -echo, seen in stty -a from inside an opener), so
+# Enter arrives as a bare \r and `read -r` would wait for a \n forever.
+# Leftover bytes of a multi-byte key are drained after.
+pause() {
+  [ -t 0 ] || return 0
+  printf '\n[press any key]'
+  read -rsn1 _ || true
+  while read -rsn1 -t 0.05 _; do :; done
+  printf '\n'
+}
 dry() { [ -n "${SMART_OPEN_DRY:-}" ]; }
 act() {
   if dry; then printf '%s\n' "$*"; return 0; fi
@@ -79,6 +89,10 @@ term_open() {
     command -v timg >/dev/null 2>&1 || die "no terminal image viewer (install timg)"
     act "terminal: timg $f" && return 0
     timg -- "$f"; pause
+    # timg draws with kitty graphics here (herdr advertises it), and kitty images
+    # are a layer above the text: yazi repainting its cells does not remove them,
+    # so every `o` would stack another picture on the screen. Delete them all.
+    printf '\e_Ga=d\e\\'
     ;;
   video/*|audio/*)
     command -v mpv >/dev/null 2>&1 || die "no terminal player for $mime (install mpv)"
