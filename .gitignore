@@ -12,6 +12,10 @@
 !bash/
 !bash/**
 
+# Coding agents: settings linked / merged into $HOME by agents/sync.sh
+!agents/
+!agents/**
+
 !nvim/
 !nvim/**
 

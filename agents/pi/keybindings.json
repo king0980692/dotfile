@@ -1,0 +1,12 @@
+{
+	"tui.input.newLine": [
+		"shift+enter",
+		"ctrl+j",
+		"alt+enter"
+	],
+	"app.message.followUp": "ctrl+q",
+	"app.model.select": [],
+	"app.model.cycleForward": [],
+	"app.model.cycleBackward": [],
+	"app.thinking.cycle": "alt+t"
+}

@@ -128,6 +128,19 @@ if [ ! -d "$XDG_CONFIG_HOME/tmux/plugins/tpm" ]; then
     git clone https://github.com/tmux-plugins/tpm "$XDG_CONFIG_HOME/tmux/plugins/tpm"
 fi
 
+# ── 8. Coding agents (Claude Code, Codex, pi) ──────────────────────
+# Shared settings, skills and the pi status extension, linked or merged into
+# $HOME (agents/sync.sh explains which and why). Credentials never move.
+info "Linking coding-agent settings..."
+"$XDG_CONFIG_HOME/agents/sync.sh" || warn "agents/sync.sh reported a problem; re-run it after fixing."
+# The herdr hooks each agent calls are generated per machine (absolute paths).
+if herdr_bin=$(mise which herdr 2>/dev/null); then
+    for agent in claude codex pi; do
+        "$herdr_bin" integration install "$agent" >/dev/null 2>&1 \
+            || warn "herdr integration install $agent failed; run it once that agent is installed."
+    done
+fi
+
 info ""
 info "========================================="
 info " Installation complete!"

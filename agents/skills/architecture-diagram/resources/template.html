@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>[Project Name] — Architecture</title>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" integrity="sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" integrity="sha384-en/ztfPSRkGfME4KIm05joYXynqzUgbsG5nMrj/xEFAHXkeZfO3yMK8QQ+mP7p1/" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --paper: #f8f8f6;
+      --surface: #ffffff;
+      --ink: #263238;
+      --muted: #59666b;
+      --rule: #c8cfcd;
+      --client: #e9f0f2;
+      --client-line: #6d8894;
+      --app: #eaf0e9;
+      --app-line: #738a78;
+      --data: #f0edf2;
+      --data-line: #8b7d91;
+      --cloud: #f2efe7;
+      --cloud-line: #988865;
+      --security: #f3ecea;
+      --security-line: #9a7b76;
+      --message: #f2eee8;
+      --message-line: #9b896f;
+      --generic: #f0f2f1;
+      --generic-line: #858f90;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 32px;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.45;
+    }
+    .container {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 42px 48px 36px;
+      background: var(--surface);
+      border: 1px solid var(--rule);
+    }
+    .header { margin-bottom: 24px; }
+    .header-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+    }
+    .eyebrow {
+      margin: 0 0 7px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 30px;
+      font-weight: 400;
+      line-height: 1.2;
+    }
+    .subtitle {
+      margin: 9px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .diagram-container {
+      padding: 16px 0 12px;
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+      overflow-x: auto;
+    }
+    svg {
+      display: block;
+      width: 100%;
+      min-width: 880px;
+      background: #fff;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    svg .boundary-label {
+      fill: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .04em;
+    }
+    svg .node-title { fill: var(--ink); font-size: 12px; font-weight: 700; }
+    svg .node-detail { fill: var(--muted); font-size: 10.5px; }
+    svg .edge-label { fill: var(--muted); font-size: 10px; }
+    svg .legend-label { fill: var(--ink); font-size: 10.5px; }
+    .figure-caption {
+      margin: 17px 0 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    .figure-caption strong { font-weight: 700; }
+    .notes {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 24px;
+      margin-top: 24px;
+    }
+    .notes section { border-top: 1px solid var(--rule); padding-top: 10px; }
+    .notes h2 {
+      margin: 0 0 5px;
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .notes p { margin: 0; color: var(--muted); font-size: 12px; }
+    .footer {
+      margin: 26px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .toolbar { display: flex; align-items: center; gap: 6px; margin-left: auto; flex-shrink: 0; }
+    .toolbar-actions { display: none; gap: 6px; }
+    .toolbar.expanded .toolbar-actions { display: flex; }
+    .toolbar button {
+      padding: 5px 9px;
+      background: #fff;
+      border: 1px solid var(--rule);
+      border-radius: 3px;
+      color: var(--ink);
+      font: 12px Arial, Helvetica, sans-serif;
+      cursor: pointer;
+    }
+    .toolbar button:hover { background: var(--paper); border-color: var(--generic-line); }
+    .toolbar-toggle { font-size: 18px !important; line-height: 1 !important; }
+    @media (max-width: 700px) {
+      body { padding: 0; }
+      .container { padding: 24px 18px; border: 0; }
+      h1 { font-size: 25px; }
+      .notes { grid-template-columns: 1fr; gap: 16px; }
+    }
+    @media print {
+      @page { margin: 14mm; }
+      body { padding: 0; background: #fff; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .container { max-width: none; padding: 0; border: 0; }
+      .toolbar { display: none !important; }
+      .diagram-container, .notes { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="report-container">
+    <header class="header">
+      <div class="header-row">
+        <div>
+          <p class="eyebrow">Architecture figure</p>
+          <h1>[Project Name] architecture</h1>
+        </div>
+        <div class="toolbar">
+          <div class="toolbar-actions">
+            <button onclick="copyAsImage(this)">Copy</button>
+            <button onclick="downloadPNG(this)">PNG</button>
+            <button onclick="downloadPDF(this)">PDF</button>
+          </div>
+          <button class="toolbar-toggle" onclick="this.parentElement.classList.toggle('expanded')" title="Export options" aria-label="Export options">⋯</button>
+        </div>
+      </div>
+      <p class="subtitle">An illustrative path from user access to persistent data</p>
+    </header>
+
+    <main>
+      <div class="diagram-container">
+        <svg viewBox="0 0 1000 420" role="img" aria-label="Conceptual application architecture with a main request path and supporting identity service">
+          <defs>
+            <marker id="arrowhead" markerWidth="8" markerHeight="7" refX="7" refY="3.5" orient="auto">
+              <path d="M 0 0 L 7 3.5 L 0 7" fill="none" stroke="#69777c" stroke-width="1.2"/>
+            </marker>
+          </defs>
+
+          <!-- Replace the generic boundary with the actual provider and scope, if known. -->
+          <rect x="208" y="62" width="736" height="275" rx="3" fill="#fbfbfa" stroke="#aeb8b7" stroke-width="1.2" stroke-dasharray="6 5"/>
+          <text x="224" y="84" class="boundary-label">Cloud environment · example scope</text>
+
+          <!-- Ordinary data flows. Draw these before the component boxes. -->
+          <g fill="none" stroke="#69777c" stroke-width="1.5" marker-end="url(#arrowhead)">
+            <line x1="158" y1="266" x2="243" y2="266"/>
+            <line x1="361" y1="266" x2="403" y2="266"/>
+            <line x1="521" y1="266" x2="563" y2="266"/>
+            <line x1="681" y1="266" x2="723" y2="266"/>
+          </g>
+          <line x1="463" y1="182" x2="463" y2="233" stroke="#9a7b76" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrowhead)"/>
+
+          <!-- Connection labels. Replace with known protocols or remove. -->
+          <text x="200" y="255" class="edge-label" text-anchor="middle">HTTPS</text>
+          <text x="703" y="255" class="edge-label" text-anchor="middle">SQL</text>
+          <text x="473" y="211" class="edge-label">auth</text>
+
+          <!-- External user -->
+          <rect x="40" y="235" width="118" height="62" rx="3" fill="#f0f2f1" stroke="#858f90" stroke-width="1.3"/>
+          <text x="99" y="261" class="node-title" text-anchor="middle">Users</text>
+          <text x="99" y="278" class="node-detail" text-anchor="middle">Browser / mobile</text>
+
+          <!-- Cloud infrastructure -->
+          <rect x="245" y="235" width="116" height="62" rx="3" fill="#f2efe7" stroke="#988865" stroke-width="1.3"/>
+          <text x="303" y="261" class="node-title" text-anchor="middle">Entry point</text>
+          <text x="303" y="278" class="node-detail" text-anchor="middle">Traffic routing</text>
+
+          <!-- Client / frontend -->
+          <rect x="405" y="235" width="116" height="62" rx="3" fill="#e9f0f2" stroke="#6d8894" stroke-width="1.3"/>
+          <text x="463" y="261" class="node-title" text-anchor="middle">User experience</text>
+          <text x="463" y="278" class="node-detail" text-anchor="middle">Frontend</text>
+
+          <!-- Application -->
+          <rect x="565" y="235" width="116" height="62" rx="3" fill="#eaf0e9" stroke="#738a78" stroke-width="1.3"/>
+          <text x="623" y="261" class="node-title" text-anchor="middle">Application</text>
+          <text x="623" y="278" class="node-detail" text-anchor="middle">Business logic</text>
+
+          <!-- Data -->
+          <rect x="725" y="235" width="160" height="62" rx="3" fill="#f0edf2" stroke="#8b7d91" stroke-width="1.3"/>
+          <text x="805" y="261" class="node-title" text-anchor="middle">Data store</text>
+          <text x="805" y="278" class="node-detail" text-anchor="middle">Persistent records</text>
+
+          <!-- Identity -->
+          <rect x="405" y="120" width="116" height="62" rx="3" fill="#f3ecea" stroke="#9a7b76" stroke-width="1.3"/>
+          <text x="463" y="146" class="node-title" text-anchor="middle">Identity</text>
+          <text x="463" y="163" class="node-detail" text-anchor="middle">Authentication</text>
+
+          <!-- Legend stays outside the lowest boundary. -->
+          <text x="208" y="381" class="boundary-label">Key</text>
+          <rect x="245" y="370" width="16" height="13" fill="#e9f0f2" stroke="#6d8894"/>
+          <text x="268" y="381" class="legend-label">Client</text>
+          <rect x="347" y="370" width="16" height="13" fill="#eaf0e9" stroke="#738a78"/>
+          <text x="370" y="381" class="legend-label">Application</text>
+          <rect x="497" y="370" width="16" height="13" fill="#f0edf2" stroke="#8b7d91"/>
+          <text x="520" y="381" class="legend-label">Data</text>
+          <rect x="586" y="370" width="16" height="13" fill="#f2efe7" stroke="#988865"/>
+          <text x="609" y="381" class="legend-label">Infrastructure</text>
+          <rect x="752" y="370" width="16" height="13" fill="#f3ecea" stroke="#9a7b76"/>
+          <text x="775" y="381" class="legend-label">Identity</text>
+        </svg>
+      </div>
+
+      <p class="figure-caption"><strong>Figure 1.</strong> A user request crosses the entry point, reaches the application, and reads or updates persistent data. Identity supports the user-facing path.</p>
+
+      <div class="notes">
+        <section>
+          <h2>At a glance</h2>
+          <p>The system receives a request, runs application logic, and stores the result.</p>
+        </section>
+        <section>
+          <h2>Technical reading</h2>
+          <p>HTTPS marks the incoming request; SQL marks access to the data store. Replace these with verified interfaces.</p>
+        </section>
+        <section>
+          <h2>Scope and assumptions</h2>
+          <p>This is a conceptual example. Replace service names and boundaries with verified details.</p>
+        </section>
+      </div>
+    </main>
+
+    <p class="footer">[Project Name] · [Version or date]</p>
+  </div>
+
+  <script>
+    async function copyAsImage(btn) {
+      const orig = btn.textContent;
+      try {
+        const el = document.getElementById('report-container');
+        const r = el.getBoundingClientRect();
+        const pad = 32;
+        const canvas = await html2canvas(document.body, { backgroundColor: '#f8f8f6', scale: 2, useCORS: true, ignoreElements: (e) => e.classList && e.classList.contains('toolbar'), x: r.left + window.scrollX - pad, y: r.top + window.scrollY - pad, width: r.width + pad * 2, height: r.height + pad * 2 });
+        const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        btn.textContent = '✓ Copied!';
+      } catch (e) {
+        btn.textContent = '✗ Failed';
+      }
+      setTimeout(() => btn.textContent = orig, 2000);
+    }
+
+    async function downloadPNG(btn) {
+      const orig = btn.textContent;
+      btn.textContent = '⏳ ...';
+      try {
+        const el = document.getElementById('report-container');
+        const r = el.getBoundingClientRect();
+        const pad = 32;
+        const canvas = await html2canvas(document.body, { backgroundColor: '#f8f8f6', scale: 2, useCORS: true, ignoreElements: (e) => e.classList && e.classList.contains('toolbar'), x: r.left + window.scrollX - pad, y: r.top + window.scrollY - pad, width: r.width + pad * 2, height: r.height + pad * 2 });
+        const link = document.createElement('a');
+        link.download = 'diagram.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        btn.textContent = '✓ Done!';
+      } catch (e) {
+        btn.textContent = '✗ Failed';
+      }
+      setTimeout(() => btn.textContent = orig, 2000);
+    }
+
+    async function downloadPDF(btn) {
+      const orig = btn.textContent;
+      btn.textContent = '⏳ ...';
+      try {
+        const el = document.getElementById('report-container');
+        const r = el.getBoundingClientRect();
+        const pad = 32;
+        const canvas = await html2canvas(document.body, { backgroundColor: '#f8f8f6', scale: 2, useCORS: true, ignoreElements: (e) => e.classList && e.classList.contains('toolbar'), x: r.left + window.scrollX - pad, y: r.top + window.scrollY - pad, width: r.width + pad * 2, height: r.height + pad * 2 });
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const orientation = canvas.width > canvas.height ? 'landscape' : 'portrait';
+        const pdf = new jsPDF({ orientation, unit: 'px', format: [canvas.width, canvas.height], hotfixes: ['px_scaling'] });
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save('diagram.pdf');
+        btn.textContent = '✓ Done!';
+      } catch (e) {
+        btn.textContent = '✗ Failed';
+      }
+      setTimeout(() => btn.textContent = orig, 2000);
+    }
+  </script>
+</body>
+</html>

@@ -105,6 +105,23 @@ Set `DOTFILES_UPDATE_CHECK=0` before starting Bash to disable it, or set `DOTFIL
 6. Symlinks `~/.gitconfig`
 7. Installs **TPM** (tmux plugin manager)
 
+
+## Coding agents
+
+`agents/` holds the settings of Claude Code, Codex and pi that are worth sharing between machines. `agents/sync.sh` (run by `install.sh`, safe to re-run) puts them in place:
+
+| In `agents/` | In `$HOME` | How |
+|---|---|---|
+| `claude/CLAUDE.md`, `RTK.md`, `statusline-command.sh` | `~/.claude/` | symlink |
+| `claude/settings.base.json` | `~/.claude/settings.json` | merged: base + hooks this machine added (herdr's agent-state hook, always written with an absolute path) |
+| `codex/config.base.toml` | `~/.codex/config.toml` | merged: base + this machine's trusted projects, hook trust hashes, MCP servers with local paths |
+| `pi/settings.json`, `keybindings.json`, `extensions/claude-style-status.ts` | `~/.pi/agent/` | symlink |
+| `skills/<name>` | `~/.claude/skills/`, `~/.codex/skills/` | symlink (one copy for both) |
+
+Paths inside the shared files use `$HOME`, so they work on Linux and macOS. Edit the merged ones in `agents/` and re-run `agents/sync.sh`; `agents/sync.sh --check` lists anything out of place. Whatever a run replaces is backed up under `~/.local/state/agents-sync-backups/<time>/`.
+
+Never in git: credentials (`.credentials.json`, `auth.json`), history and sessions, Codex `rules/` (per-machine approvals, which can contain secrets typed into a command), and the hook scripts rtk and herdr generate (`herdr integration install claude codex pi` recreates herdr's).
+
 ## Erase Everything
 
 ```bash

@@ -1,0 +1,24 @@
+{
+  "lastChangelogVersion": "1.5.0",
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.6-terra",
+  "packages": [
+    "npm:pi-polish",
+    "npm:pi-background",
+    "npm:pi-checkpoints",
+    "npm:pi-feedback",
+    "npm:pi-model-pick",
+    "npm:pi-next-prompt",
+    "npm:pi-away",
+    "npm:pi-heads-up",
+    "git:github.com/carlosarraes/pi-codex-status",
+    "npm:@juicesharp/rpiv-ask-user-question",
+    "npm:@narumitw/pi-plan-mode"
+  ],
+  "fullscreenCopyOnSelect": true,
+  "doubleEscapeAction": "fork",
+  "theme": "catppuccin-latte",
+  "extensionChangelogVersions": {
+    "{\"source\":\"npm:@narumitw/pi-plan-mode\",\"scope\":\"user\"}": "0.59.6"
+  }
+}
