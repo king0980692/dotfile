@@ -159,7 +159,7 @@ command = "\"${XDG_CONFIG_HOME:-$HOME/.config}/herdr/scripts/main_vertical.py\""
 key = "alt+s"
 type = "popup"
 description = "Go to"
-command = "bash -c 'g=$(command -v herdr-goto || echo \"$HOME/.local/bin/herdr-goto\"); [ -x \"$g\" ] && exec \"$g\"; exec bash \"${XDG_CONFIG_HOME:-$HOME/.config}/herdr/scripts/workspace_switcher.sh\"'"
+command = "bash -c 'for g in \"$(command -v herdr-goto)\" \"$HOME/.local/share/mise/shims/herdr-goto\" \"$HOME/.local/bin/herdr-goto\"; do [ -x \"$g\" ] && exec \"$g\"; done; exec bash \"${XDG_CONFIG_HOME:-$HOME/.config}/herdr/scripts/workspace_switcher.sh\"'"
 width = "80%"
 height = "80%"
 
