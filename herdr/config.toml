@@ -331,7 +331,7 @@ rows = [
 # switch_ascii_input_source_in_prefix = false
 
 [theme]
-name = "catppuccin"
+name = "terminal"
 auto_switch = false
 
 [ui.toast]

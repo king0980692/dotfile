@@ -302,6 +302,8 @@ _dotfiles_update_notice() {
         (( interval < 60 )) && interval=60
         _dotfiles_next_check=$((SECONDS + interval))
         bash "$repo/leon_scripts/dotfiles-update-check.sh" </dev/null >/dev/null 2>&1 &
+        # Remove the worker from the job table to suppress completion notices.
+        disown "$!" 2>/dev/null
     fi
     [[ -r "$cache" ]] || return 0
     IFS= read -r remote < "$cache" || return 0
