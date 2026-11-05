@@ -19,10 +19,34 @@ ttl=${CLAUDE_USAGE_TTL:-60}
 width=${CLAUDE_USAGE_WIDTH:-6}   # gauge cells, not counting the number
 creds=$HOME/.claude/.credentials.json
 
+mtime() { stat -c %Y "$1" 2>/dev/null || stat -f %m "$1"; }   # GNU, then BSD/macOS
+
+# The OAuth blob Claude Code keeps: a file on Linux, the login Keychain on
+# macOS ("Claude Code-credentials"), same JSON either way.
+credentials() {
+	if [ -r "$creds" ]; then
+		cat "$creds"
+	elif [ "$(uname -s)" = Darwin ]; then
+		security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null
+	fi
+}
+
+# One refresh at a time: flock where it exists; macOS has none, so an atomic
+# mkdir stands in (a lock dir older than a minute is a crashed run's).
+lock() {
+	if command -v flock >/dev/null 2>&1; then
+		exec 9>"$cache_dir/lock"
+		flock -n 9
+	else
+		lock_dir=$cache_dir/lock.d   # global: the EXIT trap runs after locals are gone
+		if [ -d "$lock_dir" ] && [ $(($(date +%s) - $(mtime "$lock_dir"))) -gt 60 ]; then rmdir "$lock_dir" 2>/dev/null; fi
+		mkdir "$lock_dir" 2>/dev/null && trap 'rmdir "$lock_dir" 2>/dev/null' EXIT
+	fi
+}
+
 refresh() {
 	mkdir -p "$cache_dir"
-	exec 9>"$cache_dir/lock"
-	flock -n 9 || return
+	lock || return
 	# Rate limited (429) recently: stay off the API until the backoff ends.
 	# "<until-epoch> <strikes>", shared with herdr-sidebar's Usage view.
 	local until=0 strikes=0
@@ -30,7 +54,7 @@ refresh() {
 	[ "$(date +%s)" -lt "${until:-0}" ] && return
 	touch "$stamp"
 	local token tmp code
-	token=$(jq -r '.claudeAiOauth.accessToken // empty' "$creds" 2>/dev/null) || return
+	token=$(credentials | jq -r '.claudeAiOauth.accessToken // empty' 2>/dev/null) || return
 	[ -n "$token" ] || return
 	tmp=$(mktemp "$cache_dir/usage.XXXXXX")
 	# Headers through a file descriptor, not argv, where /proc shows them.
@@ -58,8 +82,12 @@ case $1 in --refresh) refresh; exit ;; esac
 # Stale (or never fetched): refresh in the background, fully detached so the
 # prompt doesn't wait on it. Throttled by the last attempt, not the last
 # success, so an expired token doesn't retry on every prompt.
-if [ ! -e "$stamp" ] || [ $(($(date +%s) - $(stat -c %Y "$stamp"))) -ge "$ttl" ]; then
-	setsid "$0" --refresh </dev/null >/dev/null 2>&1 &
+if [ ! -e "$stamp" ] || [ $(($(date +%s) - $(mtime "$stamp"))) -ge "$ttl" ]; then
+	if command -v setsid >/dev/null 2>&1; then
+		setsid "$0" --refresh </dev/null >/dev/null 2>&1 &
+	else   # macOS: no setsid; a double fork detaches the refresh from the prompt
+		( "$0" --refresh </dev/null >/dev/null 2>&1 & ) &
+	fi
 fi
 
 [ -r "$json" ] || exit 0
