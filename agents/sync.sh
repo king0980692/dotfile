@@ -3,8 +3,16 @@
 #
 #   agents/sync.sh          link / merge everything below (safe to re-run)
 #   agents/sync.sh --check  only report what is in place and what is not
+#   agents/sync.sh --copy   copy instead of symlink (also: --link to force links)
 #
-# Symlinked (one copy, edits go straight into the dotfiles):
+# Link or copy is decided by this machine's tier, a one-word file at
+# ${XDG_STATE_HOME:-~/.local/state}/dotfiles/tier (minimal | medium | max,
+# absent = max). max links, so an agent's edits land in the dotfiles and can be
+# committed; medium and minimal copy, so the agents' own edits stay on that
+# machine and are replaced (backed up first) by the next sync. Shared changes
+# are made in agents/ on the max machine and pulled everywhere else.
+#
+# Linked or copied (one copy per machine, owned by agents/):
 #   ~/.claude/{CLAUDE.md,RTK.md,statusline-command.sh}
 #   ~/.pi/agent/{settings.json,keybindings.json,extensions/claude-style-status.ts}
 #   ~/.claude/skills/<s>, ~/.codex/skills/<s>   for each agents/skills/<s>
@@ -31,7 +39,17 @@
 set -u
 here=$(cd "$(dirname "$0")" && pwd)
 check=false
-[ "${1:-}" = --check ] && check=true
+tier_file=${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/tier
+tier=$(cat "$tier_file" 2>/dev/null || echo max)
+case $tier in max) copy=false ;; *) copy=true ;; esac
+for arg in "$@"; do
+	case $arg in
+	--check) check=true ;;
+	--copy) copy=true ;;
+	--link) copy=false ;;
+	*) echo "usage: $0 [--check] [--copy|--link]" >&2; exit 2 ;;
+	esac
+done
 stamp=$(date +%Y%m%d-%H%M%S)
 backups=${XDG_STATE_HOME:-$HOME/.local/state}/agents-sync-backups/$stamp
 status=0
@@ -46,8 +64,30 @@ backup() { # backup <path under $HOME> — move it (mv) or copy it (cp) aside
 
 say() { printf '  %-8s %s\n' "$1" "$2"; }
 
-link() { # link <source in agents/> <target in $HOME>
+same() { # same <src> <dst> — dst is a real copy (not a link) with src's content
+	[ ! -L "$2" ] && [ -e "$2" ] && diff -rq "$1" "$2" >/dev/null 2>&1
+}
+
+link() { # link <source in agents/> <target in $HOME> — or copy, see the top
 	local src=$1 dst=$2
+	if $copy; then
+		if same "$src" "$dst"; then
+			say ok "$dst (copy)"
+			return
+		fi
+		if $check; then
+			say STALE "$dst is not a current copy of $src"
+			status=1
+			return
+		fi
+		mkdir -p "$(dirname "$dst")"
+		if [ -e "$dst" ] || [ -L "$dst" ]; then
+			backup mv "$dst"
+		fi
+		cp -Rp "$src" "$dst"
+		say copied "$dst"
+		return
+	fi
 	if [ -L "$dst" ] && [ "$(readlink "$dst")" = "$src" ]; then
 		say ok "$dst"
 		return
@@ -130,6 +170,7 @@ PY
 	say merged "$dst"
 }
 
+echo "(tier: $tier, $($copy && echo copying || echo linking))"
 echo "Claude Code"
 for f in CLAUDE.md RTK.md statusline-command.sh; do
 	link "$here/claude/$f" "$HOME/.claude/$f"

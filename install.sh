@@ -9,6 +9,34 @@ info()  { printf '\033[1;34m[INFO]\033[0m %s\n' "$*"; }
 warn()  { printf '\033[1;33m[WARN]\033[0m %s\n' "$*"; }
 error() { printf '\033[1;31m[ERROR]\033[0m %s\n' "$*"; exit 1; }
 
+# ── Tier ───────────────────────────────────────────────────────────
+#   install.sh [--tier max|medium]
+# max    (leon, the main dev machine): agent settings are symlinked into the
+#        dotfiles, program repos (~/src/herdr-sidebar, ~/src/herdr-goto) live
+#        here and releases are cut here.
+# medium (e.g. the Mac): same tools and dotfiles, may commit dotfile fixes, but
+#        agent settings are copied and program repos are not checked out.
+# minimal machines do not run this script; they use
+#        herdr/scripts/install-goto.sh (herdr-goto + its alt+s binding only).
+# The tier is remembered in $TIER_FILE and read by agents/sync.sh.
+TIER_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/tier"
+tier=$(cat "$TIER_FILE" 2>/dev/null || echo max)
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --tier) tier="${2:-}"; shift 2 || shift ;;
+        --tier=*) tier="${1#--tier=}"; shift ;;
+        *) error "Unknown argument: $1 (usage: install.sh [--tier max|medium])" ;;
+    esac
+done
+case "$tier" in
+    max|medium) ;;
+    minimal) error "minimal tier: run herdr/scripts/install-goto.sh instead of install.sh" ;;
+    *) error "Unknown tier: $tier (max or medium)" ;;
+esac
+mkdir -p "$(dirname "$TIER_FILE")"
+printf '%s\n' "$tier" > "$TIER_FILE"
+info "Tier: $tier"
+
 # ── 0. Platform prerequisites ─────────────────────────────────────
 os=$(uname -s)
 case "$os" in
@@ -131,7 +159,7 @@ fi
 # ── 8. Coding agents (Claude Code, Codex, pi) ──────────────────────
 # Shared settings, skills and the pi status extension, linked or merged into
 # $HOME (agents/sync.sh explains which and why). Credentials never move.
-info "Linking coding-agent settings..."
+info "Linking (max) or copying (medium) coding-agent settings..."
 "$XDG_CONFIG_HOME/agents/sync.sh" || warn "agents/sync.sh reported a problem; re-run it after fixing."
 # The herdr hooks each agent calls are generated per machine (absolute paths).
 if herdr_bin=$(mise which herdr 2>/dev/null); then
