@@ -14,6 +14,7 @@
 cache_dir=${XDG_CACHE_HOME:-$HOME/.cache}/claude-usage
 json=$cache_dir/usage.json
 stamp=$cache_dir/last-attempt
+backoff=$cache_dir/backoff
 ttl=${CLAUDE_USAGE_TTL:-60}
 width=${CLAUDE_USAGE_WIDTH:-6}   # gauge cells, not counting the number
 creds=$HOME/.claude/.credentials.json
@@ -22,17 +23,33 @@ refresh() {
 	mkdir -p "$cache_dir"
 	exec 9>"$cache_dir/lock"
 	flock -n 9 || return
+	# Rate limited (429) recently: stay off the API until the backoff ends.
+	# "<until-epoch> <strikes>", shared with herdr-sidebar's Usage view.
+	local until=0 strikes=0
+	[ -r "$backoff" ] && read -r until strikes <"$backoff"
+	[ "$(date +%s)" -lt "${until:-0}" ] && return
 	touch "$stamp"
-	local token tmp
+	local token tmp code
 	token=$(jq -r '.claudeAiOauth.accessToken // empty' "$creds" 2>/dev/null) || return
 	[ -n "$token" ] || return
 	tmp=$(mktemp "$cache_dir/usage.XXXXXX")
-	if curl -sf --max-time 10 -o "$tmp" https://api.anthropic.com/api/oauth/usage \
-		-H "Authorization: Bearer $token" -H "anthropic-beta: oauth-2025-04-20" &&
-		jq -e '.five_hour' "$tmp" >/dev/null 2>&1; then
+	# Headers through a file descriptor, not argv, where /proc shows them.
+	code=$(curl -s --max-time 10 -o "$tmp" -w '%{http_code}' \
+		-H @<(printf 'Authorization: Bearer %s\nanthropic-beta: oauth-2025-04-20\n' "$token") \
+		https://api.anthropic.com/api/oauth/usage)
+	# has(), not .five_hour: the window is null while no session is running.
+	if [ "$code" = 200 ] && jq -e 'has("five_hour")' "$tmp" >/dev/null 2>&1; then
 		mv "$tmp" "$json"
+		rm -f "$backoff"
 	else
 		rm -f "$tmp"
+		if [ "$code" = 429 ]; then
+			# 2m, 4m, 8m … capped at 15m.
+			strikes=$((${strikes:-0} + 1))
+			local delay=$((120 << (strikes - 1)))
+			[ "$delay" -gt 900 ] && delay=900
+			printf '%s %s\n' "$(($(date +%s) + delay))" "$strikes" >"$backoff"
+		fi
 	fi
 }
 
