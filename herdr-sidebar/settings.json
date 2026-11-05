@@ -14,5 +14,6 @@
   "preview_placement": "tab",
   "scm_tree_view": false,
   "sidebar_width": 36,
-  "strict_toggle": false
+  "strict_toggle": false,
+  "sync_view": true
 }
