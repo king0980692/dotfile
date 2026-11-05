@@ -72,9 +72,9 @@ detach = "prefix+d"
 # prefix+s now runs the fzf live workspace switcher below (see [[keys.command]]).
 workspace_picker = "prefix+w"
 
-# Navigator: fuzzy type-to-search, but it searches PANES (herdr has no
-# workspace-only search). Kept on prefix+g for when you want pane search.
-# goto             = "prefix+g"
+# Navigator: M-s opens herdr-goto (herdr/goto/, our Rust clone of the built-in
+# `goto` tree navigator) as a popup — see the alt+s [[keys.command]] below.
+# To go back to the built-in widget: set goto = "alt+s" and drop that block.
 goto = ""
 
 # Iterate agents — Ctrl+Tab / Ctrl+Shift+Tab (focus next/prev agent pane)
@@ -111,8 +111,7 @@ toggle_sidebar = "prefix+b"
 # popup, M-n new, M-r rename, M-x delete — no detach, works fully inside herdr.
 # Moving the cursor does NOT switch: the previous WS_LIVE mode previewed via
 # fzf's `focus` event, which also fires while filtering, so typing switched.
-#   M-s      -> FLOATING POPUP (native `type = "popup"`, see the alt+s block
-#              below; replaced the dartyuhov.blink agent switcher).
+#   M-s      -> (was the floating popup; now herdr's built-in goto navigator)
 #   prefix+s -> same switcher in a temporary split pane (fallback / non-popup).
 # ---------------------------------------------------------------------------
 
@@ -148,12 +147,28 @@ command = "\"${XDG_CONFIG_HOME:-$HOME/.config}/herdr/scripts/main_vertical.py\""
 
 
 
+# M-s: herdr-goto tree navigator (machine > workspace > pane, / search,
+# a/b/w/i/d status filter, Enter focuses the pane). Built from herdr/goto with
+# `cargo install --path herdr/goto --root ~/.local`; remote machines get a
+# cross-compiled copy via herdr/goto/deploy.sh. NOTE: keybinding commands run
+# on whichever machine's server the TUI is showing, so the binary (and this
+# config) must exist THERE. Falls back to the fzf workspace switcher when
+# herdr-goto is missing instead of silently doing nothing.
 [[keys.command]]
 key = "alt+s"
 type = "popup"
-command = "bash -c 'exec bash \"${XDG_CONFIG_HOME:-$HOME/.config}/herdr/scripts/workspace_switcher.sh\"'"
-width = "70%"
-height = "70%"
+description = "Go to"
+command = "bash -c 'g=\"$HOME/.local/bin/herdr-goto\"; [ -x \"$g\" ] && exec \"$g\"; exec bash \"${XDG_CONFIG_HOME:-$HOME/.config}/herdr/scripts/workspace_switcher.sh\"'"
+width = "80%"
+height = "80%"
+
+# Previous M-s: fzf workspace switcher popup.
+# [[keys.command]]
+# key = "alt+s"
+# type = "popup"
+# command = "bash -c 'exec bash \"${XDG_CONFIG_HOME:-$HOME/.config}/herdr/scripts/workspace_switcher.sh\"'"
+# width = "70%"
+# height = "70%"
 
 # Scratch shell — Alt+p. A floating popup running bash; `exit` closes it.
 # Uses the native type = "popup" (the same one alt+s uses); older stable
@@ -223,7 +238,7 @@ command = "bash \"${XDG_CONFIG_HOME:-$HOME/.config}/herdr/scripts/unzoom-focus.s
 # UI: narrower sidebar (default is 26 / min 18 / max 36)
 # ---------------------------------------------------------------------------
 [ui]
-tab_bar_position = "bottom"
+tab_bar_position = "top"
 # A plain right-click always opens herdr's own pane menu; Ctrl+right-click is
 # passed to the app in the pane instead (e.g. herdr-sidebar's file menu).
 right_click_passthrough_modifier = "ctrl"
@@ -315,7 +330,7 @@ rows = [
 # switch_ascii_input_source_in_prefix = false
 
 [theme]
-name = "terminal"
+name = "catppuccin"
 auto_switch = false
 
 [ui.toast]
@@ -324,3 +339,7 @@ delivery = "terminal"
 # The default bottom-right never showed up on screen here; top-right does.
 [ui.toast.herdr]
 position = "top-right"
+
+[experimental]
+pane_history = true
+switch_ascii_input_source_in_prefix = true
