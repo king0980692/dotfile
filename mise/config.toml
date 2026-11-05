@@ -51,6 +51,7 @@ oxker = "latest"
 glow = "latest"
 "github:opensec-git/Pi-Bolt" = "latest"
 "cargo:king0980692/herdr-sidebar" = { version = "rev:923833b637d205136853ac07813f43705390b6b0", depends = ["rust"] }
+"github:king0980692/herdr-goto" = "0.1.0"    # M-s tree navigator popup, prebuilt release binary (pinned: minimum_release_age hides releases <24h old)
 croc = "latest"
 yt-dlp = { version = "latest", rename_exe = "yt-dlp" }
 ffmpeg = "latest"

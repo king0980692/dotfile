@@ -88,12 +88,6 @@ alacritty/theme.toml
 !herdr/plugins/
 !herdr/plugins/local/
 !herdr/plugins/local/**
-!herdr/goto/
-!herdr/goto/Cargo.toml
-!herdr/goto/Cargo.lock
-!herdr/goto/src/
-!herdr/goto/src/**
-!herdr/goto/deploy.sh
 # ...but not python bytecode
 herdr/scripts/**/__pycache__/
 

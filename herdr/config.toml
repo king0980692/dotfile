@@ -147,18 +147,19 @@ command = "\"${XDG_CONFIG_HOME:-$HOME/.config}/herdr/scripts/main_vertical.py\""
 
 
 
-# M-s: herdr-goto tree navigator (machine > workspace > pane, / search,
-# a/b/w/i/d status filter, Enter focuses the pane). Built from herdr/goto with
-# `cargo install --path herdr/goto --root ~/.local`; remote machines get a
-# cross-compiled copy via herdr/goto/deploy.sh. NOTE: keybinding commands run
-# on whichever machine's server the TUI is showing, so the binary (and this
-# config) must exist THERE. Falls back to the fzf workspace switcher when
-# herdr-goto is missing instead of silently doing nothing.
+# M-s: herdr-goto tree navigator (machine > workspace > pane, live status,
+# / search, a/b/w/i/d filter, folding, ' last workspace, p preview, worktrees).
+# Source: https://github.com/king0980692/herdr-goto — installed by mise from the
+# GitHub release ("github:king0980692/herdr-goto" in mise/config.toml), so it
+# lands on the mise shim PATH; $HOME/.local/bin is checked as a fallback for
+# hand-copied builds. NOTE: keybinding commands run on whichever machine's
+# server the TUI is showing, so the binary (and this config) must exist THERE.
+# Falls back to the fzf workspace switcher when herdr-goto is missing.
 [[keys.command]]
 key = "alt+s"
 type = "popup"
 description = "Go to"
-command = "bash -c 'g=\"$HOME/.local/bin/herdr-goto\"; [ -x \"$g\" ] && exec \"$g\"; exec bash \"${XDG_CONFIG_HOME:-$HOME/.config}/herdr/scripts/workspace_switcher.sh\"'"
+command = "bash -c 'g=$(command -v herdr-goto || echo \"$HOME/.local/bin/herdr-goto\"); [ -x \"$g\" ] && exec \"$g\"; exec bash \"${XDG_CONFIG_HOME:-$HOME/.config}/herdr/scripts/workspace_switcher.sh\"'"
 width = "80%"
 height = "80%"
 
