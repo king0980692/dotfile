@@ -56,3 +56,4 @@ croc = "latest"
 yt-dlp = { version = "latest", rename_exe = "yt-dlp" }
 ffmpeg = "latest"
 herdr = "latest"
+rtk = "latest"
