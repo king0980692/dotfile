@@ -1,9 +1,4 @@
 #!/bin/sh
-# Prefer this machine's local build; fall back to mise on other machines.
-local_bin="$HOME/herdr-sidebar/plugins/herdr-sidebar/target/release/herdr-sidebar"
-if [ -x "$local_bin" ]; then
-    exec "$local_bin" "$@"
-fi
 # Resolve the pinned mise-managed sidebar even when the Herdr server has a
 # minimal PATH (for example when launched outside an interactive shell).
 if command -v mise >/dev/null 2>&1; then
