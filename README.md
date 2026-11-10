@@ -70,7 +70,7 @@ Yazi's third-party plugins and flavors are restored from `yazi/package.toml` by 
 
 ### Herdr sidebar
 
-The customized sidebar source lives in [king0980692/herdr-sidebar](https://github.com/king0980692/herdr-sidebar), branch `leon`. `mise/config.toml` pins its Git commit and builds it with Cargo; update that revision to deploy newer changes. `herdr-sidebar/settings.json` holds portable preferences, while view selection, repository paths and other runtime data remain under the local Herdr state directory.
+The customized sidebar source lives in [king0980692/herdr-sidebar](https://github.com/king0980692/herdr-sidebar), branch `leon`. `mise/config.toml` pins a GitHub Release version. mise downloads the matching prebuilt archive and verifies its checksum; Sidebar installation does not invoke Cargo. CI tests `leon` on Linux/macOS x64 and ARM64 plus Windows x64, and version tags publish archives only after tests pass. Update the pinned version only after a Release has all platform assets. `herdr-sidebar/settings.json` holds portable preferences, while view selection, repository paths and other runtime data remain under the local Herdr state directory.
 
 The installer registers the local manifest at `herdr/plugins/local/herdr-sidebar`; Herdr does not download or update the binary. If a sidebar is already registered, the installer leaves it untouched. After backing up any custom registration, switch manually with:
 
@@ -79,7 +79,14 @@ herdr plugin unlink herdr-sidebar
 herdr plugin link "${XDG_CONFIG_HOME:-$HOME/.config}/herdr/plugins/local/herdr-sidebar" --enabled
 ```
 
-The linked manifest uses `mise where` to locate the pinned binary. Install or update it with `mise install`; restart Herdr or reload its plugin registration after changes. Do not use the upstream plugin's update action, which can replace the customized build.
+The linked manifest uses `mise where github:king0980692/herdr-sidebar` to locate the pinned binary. Install or update it with `mise install github:king0980692/herdr-sidebar`. From inside Herdr, refresh all existing sidebars after installation:
+
+```bash
+sidebar_root=$(mise where github:king0980692/herdr-sidebar)
+"$sidebar_root/bin/herdr-sidebar" --refresh-sidebars
+```
+
+Other tools in the global mise config may still require source builds. Old Cargo-managed Sidebar versions can remain installed but are no longer selected. Do not use the upstream plugin's update action, which can replace the customized build.
 
 ### Update notifications
 

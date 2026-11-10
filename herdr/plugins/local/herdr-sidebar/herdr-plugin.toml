@@ -1,6 +1,6 @@
 id = "herdr-sidebar"
 name = "herdr-sidebar"
-version = "0.15.1"
+version = "0.16.2"
 description = "Mise-managed customized sidebar"
 min_herdr_version = "0.8.0"
 platforms = ["linux", "macos"]

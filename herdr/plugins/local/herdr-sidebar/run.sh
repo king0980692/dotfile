@@ -10,6 +10,6 @@ else
     exit 127
 fi
 # Unlike `mise exec`, `mise where` never installs unrelated missing tools on
-# a focus event. The configured revision must already be installed.
-root=$("$mise_bin" where cargo:king0980692/herdr-sidebar) || exit 1
+# a focus event. The configured Release must already be installed.
+root=$("$mise_bin" where github:king0980692/herdr-sidebar) || exit 1
 exec "$root/bin/herdr-sidebar" "$@"
