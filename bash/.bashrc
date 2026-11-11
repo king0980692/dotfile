@@ -323,11 +323,50 @@ _dotfiles_update_notice() {
     # If the remote commit is already an ancestor, this device is current or
     # ahead. An unknown commit is treated as a possible update, not fetched.
     if ! git -C "$repo" merge-base --is-ancestor "$remote" HEAD 2>/dev/null; then
-        printf '\n[dotfiles] origin/main 有新版本或已分歧；請先檢查 git status，再 fetch / pull。\n'
-        printf '  cd "%s" && git fetch origin && git status -sb\n\n' "$repo"
+        printf '\n\e[36m[dotfiles]\e[m origin/main 有新版本；執行 dotfiles-pull 更新。\n\n'
     fi
 }
+
+# Fetch and fast-forward only. Never merges or rebases: a diverged or
+# non-main checkout is reported and left alone, and git itself refuses if the
+# update would overwrite uncommitted local edits.
+dotfiles-pull() {
+    local repo="${XDG_CONFIG_HOME:-$HOME/.config}" branch
+    branch=$(git -C "$repo" symbolic-ref --short -q HEAD)
+    if [[ $branch != main ]]; then
+        printf '\e[36m[dotfiles]\e[m 目前在 %s 而不是 main，略過更新。\n' "${branch:-detached HEAD}"
+        return 1
+    fi
+    git -C "$repo" fetch origin main || return 1
+    if git -C "$repo" merge-base --is-ancestor HEAD origin/main; then
+        git -C "$repo" merge --ff-only --quiet origin/main || return 1
+        git -C "$repo" log --oneline -n 5 "HEAD@{1}..HEAD" 2>/dev/null
+        printf '\e[36m[dotfiles]\e[m 已更新；執行 exec bash 重新載入。\n'
+    else
+        printf '\e[36m[dotfiles]\e[m 本機有未 push 的 commit，與 origin/main 已分歧，請手動處理：\n'
+        git -C "$repo" status -sb | head -1
+        return 1
+    fi
+}
+
+# At shell startup (before ble-attach, like the mise prompt) ask once and
+# update on Enter/y. Mid-session the prompt hook only prints, since reading the
+# terminal from PROMPT_COMMAND would fight ble.sh.
+_dotfiles_startup_prompt() {
+    local repo="${XDG_CONFIG_HOME:-$HOME/.config}" remote ans
+    local cache="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles-update/origin-main"
+    [[ -t 0 && -d "$repo/.git" && -r "$cache" ]] || return 0
+    IFS= read -r remote < "$cache" || return 0
+    [[ $remote =~ ^[[:xdigit:]]{40}([[:xdigit:]]{24})?$ ]] || return 0
+    git -C "$repo" merge-base --is-ancestor "$remote" HEAD 2>/dev/null && return 0
+    _dotfiles_checked_remote=$remote   # keep the prompt hook from repeating it
+    read -r -p $'\e[36m[dotfiles]\e[m origin/main 有新版本，現在更新? [Y/n] ' ans
+    [[ $ans == [nN]* ]] && return 0
+    dotfiles-pull
+}
+
 if [[ ${DOTFILES_UPDATE_CHECK:-1} != 0 && -r "${XDG_CONFIG_HOME:-$HOME/.config}/leon_scripts/dotfiles-update-check.sh" ]]; then
+    [[ $- == *i* ]] && _dotfiles_startup_prompt
     if [[ ${PROMPT_COMMAND@a} == *a* ]]; then
         PROMPT_COMMAND+=(_dotfiles_update_notice)
     else
