@@ -1,7 +1,7 @@
 {
   "lastChangelogVersion": "1.5.0",
   "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.6-terra",
+  "defaultModel": "gpt-6.1-sol",
   "packages": [
     "npm:pi-polish",
     "npm:pi-background",
@@ -17,8 +17,17 @@
   ],
   "fullscreenCopyOnSelect": true,
   "doubleEscapeAction": "fork",
-  "theme": "catppuccin-latte",
+  "theme": "system",
   "extensionChangelogVersions": {
-    "{\"source\":\"npm:@narumitw/pi-plan-mode\",\"scope\":\"user\"}": "0.59.6"
+    "{\"source\":\"npm:@narumitw/pi-plan-mode\",\"scope\":\"user\"}": "0.59.6",
+    "{\"source\":\"npm:opensec-pi-subagents@0.20.9\",\"scope\":\"user\"}": "0.20.9"
+  },
+  "piBolt": {
+    "packages": [
+      "npm:opensec-pi-subagents@0.20.9",
+      "npm:opensec-pi-todo@2.13.1",
+      "npm:opensec-pi-fff@0.11.0"
+    ],
+    "packagesOverlay": true
   }
 }
