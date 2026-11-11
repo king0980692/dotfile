@@ -87,8 +87,18 @@ _cached_eval() {
     fi
     [[ -x "$bin_path" ]] || return
     [[ -d "$HOME/.cache/bash_init" ]] || mkdir -p "$HOME/.cache/bash_init"
-    if [[ ! -f "$cache" || "$bin_path" -nt "$cache" ]]; then
-        "$@" > "$cache" 2>/dev/null
+    # Regenerate when missing, empty, or older than the binary. Write to a temp
+    # file and only keep a successful, non-empty result: an init that failed
+    # once (e.g. binary mid-upgrade) used to leave a 0-byte cache that was
+    # "newer" than the binary and silently disabled the tool for good.
+    if [[ ! -s "$cache" || "$bin_path" -nt "$cache" ]]; then
+        if "$@" > "$cache.tmp" 2>/dev/null && [[ -s "$cache.tmp" ]]; then
+            mv -f "$cache.tmp" "$cache"
+        else
+            rm -f "$cache.tmp"
+            eval "$("$@" 2>/dev/null)"
+            return
+        fi
     fi
     source "$cache"
 }
