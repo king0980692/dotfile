@@ -49,7 +49,6 @@ onefetch = "latest"
 "github:tbillington/kondo" = "latest"
 oxker = "latest"
 glow = "latest"
-"github:opensec-git/Pi-Bolt" = "latest"
 "github:king0980692/herdr-sidebar" = { version = "0.16.2", asset_pattern = 'herdr-sidebar-{{ arch(x64="x86_64", arm64="aarch64") }}-{{ os(linux="unknown-linux-musl", macos="apple-darwin", windows="pc-windows-msvc") }}.tar.gz', bin_path = "bin" }
 "github:king0980692/herdr-goto" = "0.1.0"    # M-s tree navigator popup, prebuilt release binary (pinned: minimum_release_age hides releases <24h old)
 croc = "latest"
