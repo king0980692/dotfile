@@ -1,7 +1,8 @@
 function ble/widget/zi_widget {
   local oldpwd=$PWD
 
-  _ZO_DOCTOR=0 zi 
+  # Hand terminal input modes to fzf, then restore ble.sh even on cancellation.
+  ble/widget/external-command '_ZO_DOCTOR=0 zi'
 
   if [[ $PWD != "$oldpwd" ]] && declare -f on_chpwd >/dev/null; then
     on_chpwd
