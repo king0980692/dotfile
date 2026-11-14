@@ -61,7 +61,7 @@ function ble/widget/fzf_search_widget {
   # Pick a file, then insert its (shell-quoted) path at the cursor on the bash
   # command line — like fzf's stock Ctrl+T — instead of an action menu.
   local sel
-  sel="$(~/.config/leon_scripts/search_files.sh)"
+  ble/widget/external-command 'sel="$("$HOME/.config/leon_scripts/search_files.sh")"'
   if [[ -n $sel ]]; then
     local q; printf -v q '%q' "$sel"
     ble/widget/insert-string "$q "
@@ -71,10 +71,7 @@ function ble/widget/fzf_search_widget {
 ble-bind -m 'vi_imap' -f 'C-t' 'fzf_search_widget'
 
 function ble/widget/fzf_grep_widget {
-  # 執行指定的 binary
-  ~/.config/leon_scripts/search_text.sh
-  # echo '\n\n'
-  # 執行完後，重繪提示符
+  ble/widget/external-command '"$HOME/.config/leon_scripts/search_text.sh"'
   ble/widget/redraw-line
 }
 ble-bind -m 'vi_imap' -f 'C-f' 'fzf_grep_widget'
