@@ -14,17 +14,21 @@ bleopt menu_align_prefix='\e[1m%d:\e[m '
 # --- 智慧補全：TAB 用 fzf 模糊選單 + 大小寫不敏感 ---
 # 多個候選時 TAB 跳出 fzf 模糊搜尋（取代原生選單）
 # -d: load on the first idle tick instead of during startup (it forks `column`).
-ble-import -d integration/fzf-menu
 # 只針對補全選單設高度：不用全域 FZF_DEFAULT_OPTS（避免 tmux-fzf 等繼承出錯）
 # local -x 把設定限制在這次補全的 fzf 子行程，不影響其他 fzf widget
+# 在模組載入後定義，避免延遲載入覆蓋自訂 widget。
+ble-import -d integration/fzf-menu -C '
 function ble/widget/fzf-menu-complete {
   # tab:down / shift-tab:up so you can keep tabbing through candidates (Enter
-  # selects); ctrl-n/p still work too. Otherwise fzf's TAB = toggle-select.
+  # selects); ctrl-n/p still work too. Otherwise TAB = toggle-select in fzf.
   local -x FZF_DEFAULT_OPTS="${FZF_DEFAULT_OPTS-} --height=40% --min-height=10 --layout=reverse --border --bind=tab:down,btab:up"
   local bleopt_integration_fzf_menu_enabled=1
-  ble-import integration/fzf-menu   # no-op once the delayed import has run
   ble/widget/complete
 }
+# vi 模式的 TAB 綁定也必須等 widget 定義完成後才設定。
+ble-bind -m vi_imap -f C-i fzf-menu-complete
+ble-bind -m vi_imap -f TAB fzf-menu-complete
+'
 # 大小寫不敏感、- 與 _ 互通
 bind 'set completion-ignore-case on'
 bind 'set completion-map-case on'
@@ -87,10 +91,6 @@ ble-bind -m 'menu_complete' -f 'C-k' 'menu/backward-line'
 
 ble-bind -f 'C-m' accept-line
 ble-bind -f 'RET' accept-line
-
-# 注意：因為用 set -o vi，打字時在 vi_imap keymap，必須指定 -m vi_imap 才會生效
-ble-bind -m vi_imap -f 'C-i' fzf-menu-complete
-ble-bind -m vi_imap -f 'TAB' fzf-menu-complete
 
 set -o vi
 ble-bind -m vi_imap -f 'j j' 'vi_imap/normal-mode'
