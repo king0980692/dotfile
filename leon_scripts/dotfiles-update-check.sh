@@ -6,8 +6,8 @@ set -u
 [ "${DOTFILES_UPDATE_CHECK:-1}" != 0 ] || exit 0
 repo=${XDG_CONFIG_HOME:-$HOME/.config}
 cache=${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles-update
-interval=${DOTFILES_UPDATE_INTERVAL:-3600}
-case "$interval" in ''|*[!0-9]*) interval=3600 ;; esac
+interval=${DOTFILES_UPDATE_INTERVAL:-86400}
+case "$interval" in ''|*[!0-9]*) interval=86400 ;; esac
 interval=$((10#$interval))
 [ -d "$repo/.git" ] || exit 0
 command -v git >/dev/null 2>&1 || exit 0

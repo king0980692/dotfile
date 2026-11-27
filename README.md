@@ -92,7 +92,7 @@ Other tools in the global mise config may still require source builds. Old Cargo
 
 Interactive Bash checks `origin/main` in the background, at most once per hour by default. On the next prompt after a check, it warns if the remote commit is not already in the local history. It never fetches, pulls, changes the working tree, or prompts for credentials. The notification is advisory: inspect local changes before syncing.
 
-Set `DOTFILES_UPDATE_CHECK=0` before starting Bash to disable it, or set `DOTFILES_UPDATE_INTERVAL` to the check interval in seconds (prompt scheduling has a 60-second minimum). Offline or failed checks are silent and retried after the interval.
+Set `DOTFILES_UPDATE_CHECK=0` before starting Bash to disable it, or set `DOTFILES_UPDATE_INTERVAL` to the check interval in seconds (default 86400, once a day; prompt scheduling has a 60-second minimum). Offline or failed checks are silent and retried after the interval.
 
 ### Machine-specific settings
 

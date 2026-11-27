@@ -7,6 +7,7 @@
 #   over ssh    -> stay inside the terminal (timg / $EDITOR / $PAGER); popping a
 #                  window on the WSL host would open it on a machine nobody is
 #                  looking at
+#   macOS       -> /usr/bin/open (flags like -a/-R pass straight through)
 #   plain linux -> xdg-open, detached
 #
 # Why not just test $SSH_CONNECTION: inside herdr (or tmux) a pane inherits the
@@ -119,6 +120,13 @@ gui_open() {
 }
 
 [ $# -gt 0 ] || set -- .
+
+# macOS sitting at the machine: the native open already does the right thing,
+# and takes its own flags (open -a App, open -R, ...), so hand everything over.
+if [ "$(uname -s)" = Darwin ] && ! is_remote; then
+  act "macos: /usr/bin/open $*" && exit 0
+  exec /usr/bin/open "$@"
+fi
 
 for target in "$@"; do
   [ -e "$target" ] || die "no such path: $target"

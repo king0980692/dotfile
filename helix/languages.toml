@@ -1,0 +1,26 @@
+# Respect rust-toolchain.toml instead of the mise-inherited override.
+# Herdr's vendored ghostty-vt requires the already-installed Zig 0.16.0.
+[language-server.rust-analyzer]
+command = "env"
+args = ["-u", "RUSTUP_TOOLCHAIN", "ZIG=/Users/lychang/.local/share/mise/installs/zig/0.16.0/bin/zig", "rust-analyzer"]
+
+[language-server.rust-analyzer.config]
+check.command = "check"
+cargo.extraArgs = ["--locked"]
+
+# Share the mise-managed server with Neovim; replace unavailable Python defaults.
+[language-server.pyright]
+command = "pyright-langserver"
+args = ["--stdio"]
+
+[language-server.pyright.config]
+python.analysis = { autoSearchPaths = true, diagnosticMode = "workspace", useLibraryCodeForTypes = true }
+pyright.disableOrganizeImports = true
+
+[[language]]
+name = "python"
+language-servers = ["pyright"]
+
+# shortcut: pinned mise fallback; update both editor paths when upgrading TypeScript.
+[language-server.typescript-language-server.config]
+tsserver.fallbackPath = "/Users/lychang/.local/share/mise/installs/npm-typescript/6.0.3/node_modules/typescript/lib/tsserver.js"

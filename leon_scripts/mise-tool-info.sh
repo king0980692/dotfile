@@ -79,16 +79,20 @@ if [ -n "$installed_info" ]; then
   fi
 
   if [ -d "$install_path" ]; then
-    echo -e "${BOLD}安裝路徑:${NC} ${install_path/#$HOME/\~}"
+    tilde="~"  # bash 3.2 會保留 \~ 的反斜線
+    echo -e "${BOLD}安裝路徑:${NC} ${install_path/#$HOME/$tilde}"
 
     # 列出主要執行檔 (優先找 bin/，否則從安裝目錄往下找)
     echo ""
     echo -e "${BOLD}可執行檔:${NC}"
     if [ -d "${install_path}/bin" ]; then
-      mapfile -t exes < <(find -L "${install_path}/bin" -maxdepth 1 -type f -executable 2>/dev/null | sort)
+      exe_dir="${install_path}/bin" exe_depth=1
     else
-      mapfile -t exes < <(find -L "$install_path" -maxdepth 3 -type f -executable 2>/dev/null | sort)
+      exe_dir="$install_path" exe_depth=3
     fi
+    # macOS: bash 3.2 沒有 mapfile，BSD find 沒有 -executable
+    exes=()
+    while IFS= read -r line; do exes+=("$line"); done < <(find -L "$exe_dir" -maxdepth "$exe_depth" -type f -perm -u+x 2>/dev/null | sort)
 
     # 限制顯示數量
     max_exes=10

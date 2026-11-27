@@ -213,10 +213,12 @@ filter_state() {
   backend=$(<"$STATE/backend")
   status=$(<"$STATE/status")
   [ "$backend" = "all" ] && backend="All"
+  # macOS /bin/bash 3.2 沒有 ${var^}
+  status="$(printf %s "${status:0:1}" | tr "[:lower:]" "[:upper:]")${status:1}"
   if [ -n "$MISE_FZF_COMPACT" ]; then
-    echo " < ${status^} > | < $backend > "
+    echo " < $status > | < $backend > "
   else
-    echo " TAB Status < ${status^} > | ^B Backend < $backend > "
+    echo " TAB Status < $status > | ^B Backend < $backend > "
   fi
 }
 
@@ -250,7 +252,8 @@ case "$1" in
     exit
     ;;
   __cycle-backend)
-    mapfile -t backends < "$STATE/backends"
+    backends=()
+    while IFS= read -r line; do backends+=("$line"); done < "$STATE/backends"
     cycle "$STATE/backend" "$2" "${backends[@]}"
     exit
     ;;

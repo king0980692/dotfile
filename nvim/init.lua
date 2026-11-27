@@ -1,3 +1,13 @@
+-- Native Rust LSP works without restoring the removed plugins.
+vim.lsp.config('rust_analyzer', {
+  cmd = { 'env', '-u', 'RUSTUP_TOOLCHAIN',
+    'ZIG=' .. vim.fn.expand('~/.local/share/mise/installs/zig/0.16.0/bin/zig'), 'rust-analyzer' },
+  filetypes = { 'rust' },
+  root_markers = { 'Cargo.toml', 'rust-project.json', '.git' },
+  settings = { ['rust-analyzer'] = { check = { command = 'check' }, cargo = { extraArgs = { '--locked' } } } },
+})
+vim.lsp.enable('rust_analyzer')
+
 -- require("config.lazy")
 -- require("config.option")
 
@@ -27,6 +37,14 @@ vim.o.signcolumn = "yes"
 vim.o.termguicolors = true
 vim.o.wrap = false
 vim.o.tabstop = 4
+vim.o.shiftwidth = 4
+vim.o.softtabstop = 4
+vim.o.expandtab = true
+vim.o.autoindent = true
+vim.o.ignorecase = true
+vim.o.smartcase = true
+vim.o.splitright = true
+vim.o.splitbelow = true
 vim.o.smarttab = true -- global-only 選項，原本散在 after/ftplugin，集中設一次
 vim.o.swapfile = false
 vim.g.mapleader = " "
@@ -69,16 +87,16 @@ vim.keymap.set('n', '<leader>o', ':update<CR> :source<CR>')
 -- vim.keymap.set('n', '<leader>w', ':write<CR>')
 -- vim.keymap.set('n', '<leader>q', ':quit<CR>')
 
-vim.keymap.set({ 'n', 'v', 'x' }, '<leader>y', '"+y<CR>')
-vim.keymap.set({ 'n', 'v', 'x' }, '<leader>d', '"+d<CR>')
+vim.keymap.set({ 'n', 'x' }, '<leader>y', '"+y')
+vim.keymap.set({ 'n', 'x' }, '<leader>d', '"+d')
 
 vim.keymap.set("n", "<C-d>", "<C-d>zz", { noremap = true, silent = true })
 vim.keymap.set("n", "<C-u>", "<C-u>zz", { noremap = true, silent = true })
 
-vim.keymap.set("n", "H", "<cmd>BufferPrevious<cr>", { desc = "Move to previous buffer" })
-vim.keymap.set("n", "L", "<cmd>BufferNext<cr>", { desc = "Move to next buffer" })
-vim.keymap.set("n", "<C-Tab>", "<cmd>BufferNext<cr>", { desc = "Next tab" })
-vim.keymap.set("n", "<C-S-Tab>", "<cmd>BufferPrevious<cr>", { desc = "Previous tab" })
+vim.keymap.set("n", "H", "<cmd>bprevious<cr>", { desc = "Move to previous buffer" })
+vim.keymap.set("n", "L", "<cmd>bnext<cr>", { desc = "Move to next buffer" })
+vim.keymap.set("n", "<C-Tab>", "<cmd>bnext<cr>", { desc = "Next buffer" })
+vim.keymap.set("n", "<C-S-Tab>", "<cmd>bprevious<cr>", { desc = "Previous buffer" })
 -- vim.keymap.set("n", "H", "<cmd>bp <CR>", { silent = false })
 -- vim.keymap.set("n", "L", "<cmd>bn <CR>", { silent = false })
 
@@ -92,6 +110,88 @@ vim.keymap.set("n", "<M-w>x", "<cmd>bd <CR>", { silent = false })
 
 -- vim.keymap.set("n", "<C-i>", "Obreakpoint()<Esc>", { noremap = true, silent = true })
 vim.keymap.set("i", "<C-b>", "breakpoint()<Esc>", { noremap = true, silent = true })
+
+-- Native features stay active even when the old plugins are absent.
+vim.keymap.set("n", "<C-]>", vim.lsp.buf.definition, { desc = "Go to definition" })
+vim.api.nvim_create_autocmd('LspAttach', {
+  group = vim.api.nvim_create_augroup('NativeLspCompletion', { clear = true }),
+  callback = function(ev)
+    local client = vim.lsp.get_client_by_id(ev.data.client_id)
+    if client and client:supports_method('textDocument/completion') then
+      vim.lsp.completion.enable(true, client.id, ev.buf, { autotrigger = true })
+    end
+  end,
+})
+
+-- Copy over SSH and Herdr using the terminal clipboard.
+if vim.env.SSH_TTY or vim.env.HERDR_ENV then
+  local osc52 = require("vim.ui.clipboard.osc52")
+  local selections = { ["+"] = { {}, "v" }, ["*"] = { {}, "v" } }
+  local function copy_reg(reg)
+    local copy = osc52.copy(reg)
+    return function(lines, regtype)
+      selections[reg] = { vim.deepcopy(lines), regtype }
+      copy(lines, regtype)
+    end
+  end
+  vim.g.clipboard = {
+    name = "OSC 52 with local cache",
+    copy = { ["+"] = copy_reg("+"), ["*"] = copy_reg("*") },
+    paste = {
+      ["+"] = function() return selections["+"][1], selections["+"][2] end,
+      ["*"] = function() return selections["*"][1], selections["*"][2] end,
+    },
+  }
+end
+
+vim.keymap.set("n", "<leader>D", function()
+  vim.diagnostic.setqflist()
+end, { desc = "Diagnostics -> quickfix" })
+
+vim.api.nvim_create_autocmd("TextYankPost", {
+  group = vim.api.nvim_create_augroup("HighlightYank", { clear = true }),
+  callback = function()
+    vim.hl.on_yank({ timeout = 200 })
+  end,
+})
+vim.api.nvim_create_autocmd("BufReadPost", {
+  group = vim.api.nvim_create_augroup("RestoreCursor", { clear = true }),
+  callback = function(args)
+    local ft = vim.bo[args.buf].filetype
+    if ft == "gitcommit" or ft == "gitrebase" then return end
+    if vim.bo[args.buf].buftype ~= "" then return end
+    if vim.api.nvim_get_current_buf() ~= args.buf then return end
+    local mark = vim.api.nvim_buf_get_mark(args.buf, '"')
+    if mark[1] > 0 and mark[1] <= vim.api.nvim_buf_line_count(args.buf) then
+      pcall(vim.api.nvim_win_set_cursor, 0, mark)
+      vim.schedule(function()
+        if vim.api.nvim_get_current_buf() == args.buf then
+          vim.cmd("normal! zz")
+        end
+      end)
+    end
+  end,
+})
+
+vim.o.grepprg = "rg --vimgrep --smart-case --hidden --glob=!.git"
+vim.o.grepformat = "%f:%l:%c:%m"
+vim.keymap.set("n", "<leader>g", function()
+  vim.ui.input({ prompt = "Grep: " }, function(pattern)
+    if not pattern or pattern == "" then return end
+    vim.cmd("silent grep! " .. vim.fn.fnameescape(pattern))
+    if vim.tbl_isempty(vim.fn.getqflist()) then
+      vim.notify("找不到: " .. pattern, vim.log.levels.WARN)
+    else
+      vim.cmd("copen")
+    end
+  end)
+end, { desc = "Grep -> quickfix" })
+
+-- Only explicitly selected plugins are active; keep the old bulk setup archived.
+require('config.selected')
+
+-- Installing one plugin must never reactivate the old 29-plugin bootstrap.
+do return end
 
 vim.keymap.set("n", "<C-c><C-c>", "<Plug>SlimeLineSend", { silent = false })
 vim.keymap.set("x", "<C-c><C-c>", "<Plug>SlimeRegionSend", { silent = false })
@@ -545,19 +645,6 @@ for _, mode in ipairs(modes) do
     })
   end
 end
-
-vim.keymap.set("n", "<C-]>", vim.lsp.buf.definition, { desc = "Go to definition" })
-
-----------------
-
-vim.api.nvim_create_autocmd('LspAttach', {
-	callback = function(ev)
-		local client = vim.lsp.get_client_by_id(ev.data.client_id)
-		if client:supports_method('textDocument/completion') then
-			vim.lsp.completion.enable(true, client.id, ev.buf, { autotrigger = true })
-		end
-	end,
-})
 
 
 local navic = require("nvim-navic").setup({
@@ -1071,48 +1158,6 @@ require('hlchunk').setup({
   },
 })
 
--- Copy over ssh
--- OSC52 clipboard: over SSH (SSH_TTY) and inside herdr (HERDR_ENV) — herdr
--- doesn't set SSH_TTY, so gate on it too or copy silently no-ops there.
-if vim.env.SSH_TTY or vim.env.HERDR_ENV then
-  local osc52 = require("vim.ui.clipboard.osc52")
-
-  local function copy_reg(reg)
-    local orig = osc52.copy(reg)
-    return function(lines, regtype)
-      -- Write to Vim's internal register
-      vim.fn.setreg(reg, table.concat(lines, "\n"), regtype)
-
-      -- Send OSC52 to local clipboard
-      orig(lines, regtype)
-    end
-  end
-
-	vim.g.clipboard = {
-		name = "OSC 52 with register sync",
-		copy = {
-			["+"] = copy_reg("+"),
-			["*"] = copy_reg("*"),
-		},
-		paste = {
-			["+"] = function() return vim.fn.getreg("+"), "v" end,
-			["*"] = function() return vim.fn.getreg("*"), "v" end,
-		},
-	}
-
-	vim.o.clipboard = "unnamedplus"
-end
-
-
--- ============ 原生功能補完（不需要插件）============
-
--- ---- 1) 全部診斷丟進 quickfix ----
--- setqflist 的 open 預設就是 true，不用自己 copen。
--- <leader>d 已經給 "+d 了，所以用大寫。
-vim.keymap.set("n", "<leader>D", function()
-	vim.diagnostic.setqflist()
-end, { desc = "Diagnostics -> quickfix" })
-
 -- ---- 2) 存檔自動格式化 ----
 -- 實作在 lua/format.lua，第一次存檔才 require（開檔、上色、LSP 都用不到）。
 vim.g.autoformat = true
@@ -1138,65 +1183,3 @@ vim.api.nvim_create_user_command("FormatToggle", function()
 	vim.g.autoformat = not vim.g.autoformat
 	vim.notify("autoformat: " .. tostring(vim.g.autoformat))
 end, { desc = "開關存檔自動格式化" })
-
--- ---- 3) 複製高亮 / 重開檔案回到上次游標位置 ----
--- 兩個都不是 nvim 預設行為（0.12 nightly 實測過）。
--- 注意是 vim.hl.on_yank：vim.highlight 在 0.11 起已 deprecated。
--- （zero_nvim 那份傳的 visual = true 是無效 key，正確的欄位叫 on_visual，
---   而且預設就是 true，所以直接不傳。）
-vim.api.nvim_create_autocmd("TextYankPost", {
-	group = vim.api.nvim_create_augroup("HighlightYank", { clear = true }),
-	callback = function()
-		vim.hl.on_yank({ timeout = 200 })
-	end,
-})
-
-vim.api.nvim_create_autocmd("BufReadPost", {
-	group = vim.api.nvim_create_augroup("RestoreCursor", { clear = true }),
-	callback = function(args)
-		local ft = vim.bo[args.buf].filetype
-		if ft == "gitcommit" or ft == "gitrebase" then
-			return -- commit message 永遠要從第一行開始寫
-		end
-		if vim.bo[args.buf].buftype ~= "" then
-			return
-		end
-		-- BufReadPost 也會在 buffer 沒被顯示的情況下觸發（例如 :badd），
-		-- 那時候 win_set_cursor(0, ...) 會打到別的視窗。
-		if vim.api.nvim_get_current_buf() ~= args.buf then
-			return
-		end
-
-		local mark = vim.api.nvim_buf_get_mark(args.buf, '"')
-		if mark[1] > 0 and mark[1] <= vim.api.nvim_buf_line_count(args.buf) then
-			pcall(vim.api.nvim_win_set_cursor, 0, mark)
-			-- 延到 render 之後才置中
-			vim.schedule(function()
-				if vim.api.nvim_get_current_buf() == args.buf then
-					vim.cmd("normal! zz")
-				end
-			end)
-		end
-	end,
-})
-
--- ---- 4) :grep 全專案搜尋 -> quickfix ----
--- nightly 的 grepprg 預設是 `rg --vimgrep -uu`，-uu 代表連 .gitignore 都無視，
--- 在有 node_modules 的專案裡等於災難。這裡改回尊重 ignore 規則。
--- 跟 <c-f>（fzf-lua live_grep）的差別：quickfix 關掉還在，可以慢慢改。
-vim.o.grepprg = "rg --vimgrep --smart-case --hidden --glob=!.git"
-vim.o.grepformat = "%f:%l:%c:%m"
-
-vim.keymap.set("n", "<leader>g", function()
-	vim.ui.input({ prompt = "Grep: " }, function(pattern)
-		if not pattern or pattern == "" then
-			return
-		end
-		vim.cmd("silent grep! " .. vim.fn.fnameescape(pattern))
-		if vim.tbl_isempty(vim.fn.getqflist()) then
-			vim.notify("找不到: " .. pattern, vim.log.levels.WARN)
-		else
-			vim.cmd("copen")
-		end
-	end)
-end, { desc = "Grep -> quickfix" })

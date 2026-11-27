@@ -26,6 +26,17 @@ _ble_sl_hoist() {
   ble/is-function ble/keymap:vi/update-mode-indicator &&
     ble/keymap:vi/update-mode-indicator
 }
+# Widgets (ble-bind -f) that cd never go through PROMPT_COMMAND, so the status
+# line keeps showing the old cwd. Re-render starship and hoist it by hand;
+# $? is primed with the last command's status so the status segment stays put.
+_ble_sl_refresh() {
+  if ble/is-function starship_precmd; then
+    _starship_set_return "${STARSHIP_CMD_STATUS:-0}"
+    starship_precmd
+  fi
+  _ble_sl_hoist
+}
+
 if [[ ${PROMPT_COMMAND@a} == *a* ]]; then
   PROMPT_COMMAND+=(_ble_sl_hoist)
 else

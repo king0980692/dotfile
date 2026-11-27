@@ -6,5 +6,6 @@
 # PATH bootstrap: herdr runs custom commands without the interactive shell's
 # PATH, so `herdr` may not resolve — add its mise install dir explicitly.
 export PATH="$HOME/.local/bin:$HOME/.local/share/mise/installs/herdr/latest:$PATH"
-herdr pane zoom --off --current >/dev/null 2>&1
-exec herdr pane focus --direction "${1:?direction required}" --current
+HERDR="${HERDR_BIN_PATH:-herdr}"
+"$HERDR" pane zoom --off --current >/dev/null 2>&1
+exec "$HERDR" pane focus --direction "${1:?direction required}" --current

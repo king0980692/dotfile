@@ -1,0 +1,8 @@
+# Same Rust toolchain and cargo settings as Helix, Neovim and Kakoune.
+[language-server.rust-analyzer]
+command = "env"
+args = ["-u", "RUSTUP_TOOLCHAIN", "ZIG=/Users/lychang/.local/share/mise/installs/zig/0.16.0/bin/zig", "rust-analyzer"]
+
+[language-server.rust-analyzer.config]
+check.command = "check"
+cargo.extraArgs = ["--locked"]

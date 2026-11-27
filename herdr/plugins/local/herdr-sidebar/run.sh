@@ -1,15 +1,9 @@
 #!/bin/sh
-# Resolve the pinned mise-managed sidebar even when the Herdr server has a
-# minimal PATH (for example when launched outside an interactive shell).
-if command -v mise >/dev/null 2>&1; then
-    mise_bin=$(command -v mise)
-elif [ -x "$HOME/.local/bin/mise" ]; then
-    mise_bin="$HOME/.local/bin/mise"
-else
-    printf '%s\n' 'herdr-sidebar: mise not found' >&2
-    exit 127
-fi
-# Unlike `mise exec`, `mise where` never installs unrelated missing tools on
-# a focus event. The configured Release must already be installed.
-root=$("$mise_bin" where github:king0980692/herdr-sidebar) || exit 1
+# Resolve only an already-installed, mise-pinned sidebar. Never install on a focus event.
+set -eu
+if [ -x "$HOME/.local/bin/mise" ]; then mise_bin="$HOME/.local/bin/mise"
+elif command -v mise >/dev/null 2>&1; then mise_bin=$(command -v mise)
+elif [ -x "$HOME/.local/share/mise/bin/mise" ]; then mise_bin="$HOME/.local/share/mise/bin/mise"
+else printf '%s\n' 'herdr-sidebar: mise is not installed' >&2; exit 127; fi
+root=$("$mise_bin" --cd "$HOME" where github:king0980692/herdr-sidebar) || exit 1
 exec "$root/bin/herdr-sidebar" "$@"

@@ -14,18 +14,14 @@ mise_matching_installed() {
   else
     installed=$(COLUMNS=1000 mise ls --installed 2>/dev/null)
   fi
-  awk -v tool="$tool" -v registry="$registry" '
-    BEGIN {
-      allowed[tool] = 1
-      if (tool !~ /^[a-z]+:/) {
-        n = split(registry, lines, "\n")
-        for (i = 1; i <= n; i++) {
-          count = split(lines[i], fields, " ")
-          if (fields[1] == tool)
-            for (j = 2; j <= count; j++) allowed[fields[j]] = 1
-        }
-      }
+  # registry 以檔案傳入: macOS 的 BSD awk 不接受 -v 值含換行
+  awk -v tool="$tool" '
+    BEGIN { allowed[tool] = 1 }
+    FILENAME == ARGV[1] {
+      if (tool !~ /^[a-z]+:/ && $1 == tool)
+        for (j = 2; j <= NF; j++) allowed[$j] = 1
+      next
     }
     $1 in allowed { print }
-  ' <<< "$installed"
+  ' <(printf '%s\n' "$registry") <(printf '%s\n' "$installed")
 }

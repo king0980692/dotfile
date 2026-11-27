@@ -44,7 +44,9 @@ run_mise() {
   gum spin --show-error --spinner dot --title "$title" -- mise "$@"
 }
 
-mapfile -t installed_names < <(find_installed_name)
+# macOS /bin/bash 3.2 沒有 mapfile
+installed_names=()
+while IFS= read -r line; do installed_names+=("$line"); done < <(find_installed_name)
 if [ "${#installed_names[@]}" -gt 1 ]; then
   printf '錯誤: 找到多個已安裝的 backend，為避免誤刪，請明確指定：\n' >&2
   printf '  %s\n' "${installed_names[@]}" >&2
@@ -107,7 +109,8 @@ fi
 # 未安裝 - 啟動安裝程序
 
 # registry 中此工具可用的 backend (完整名稱，如 aqua:openai/codex)
-mapfile -t tool_backends < <(mise registry 2>/dev/null |
+tool_backends=()
+while IFS= read -r line; do tool_backends+=("$line"); done < <(mise registry 2>/dev/null |
   awk -v t="$tool" '$1 == t {for (i = 2; i <= NF; i++) print $i; exit}')
 
 # 目前 backend 過濾條件對應的完整名稱

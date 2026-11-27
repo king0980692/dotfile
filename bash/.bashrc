@@ -4,6 +4,61 @@ case $- in
       *) return;;
 esac
 
+# Ghostty quick terminal: runs ONE app, exec'd before the rest of this file
+# (ble.sh, mise, ...) so it shows up instantly. Ghostty's own PATH has no mise,
+# so add the shims (lazygit, delta pager, nvim editor). Unset the marker so
+# shells started from inside these apps are normal ones.
+#   alt+space (Ghostty global toggle)              -> pi-bolt (default)
+#   cmd+s in Ghostty (Karabiner: leon_scripts/ghostty-quick.sh goto, then
+#   f19 = global toggle_quick_terminal; herdr-native M-s is the fallback)
+#                                               -> herdr-goto
+# The script passes the mode via ~/.cache/ghostty-quick/next.
+if [[ -n ${GHOSTTY_QUICK_TERMINAL-} ]]; then
+    unset GHOSTTY_QUICK_TERMINAL
+    # Own colours so the quick terminal stands apart from normal windows
+    # (Ghostty has no per-quick-terminal theme). OSC 11/10 = this surface's
+    # background/foreground; picked per macOS appearance at start. goto exits
+    # on hide, so it re-picks every time; pi-bolt/lazygit keep theirs until
+    # they are restarted.
+    if [[ $(defaults read -g AppleInterfaceStyle 2>/dev/null) == Dark ]]; then
+        printf '\e]11;#2b2d31\a\e]10;#e6e6e6\a'   # neutral grey (main: #000000)
+    else
+        printf '\e]11;#f5eedf\a\e]10;#2f3b54\a'   # warm paper (main: #eef0f5)
+    fi
+    export PATH="$HOME/.local/share/mise/shims:$HOME/.local/bin:$PATH" EDITOR=nvim VISUAL=nvim
+    __qs=$HOME/.cache/ghostty-quick __qm=pi-bolt
+    if read -r __qt __qn < "$__qs/next" 2>/dev/null; then
+        rm -f "$__qs/next"
+        (( EPOCHSECONDS - __qt <= 3 )) && __qm=$__qn
+    fi
+    mkdir -p "$__qs" && echo "$$ $__qm" > "$__qs/running"
+    if [[ $__qm == goto ]]; then
+        # herdr-goto --quick: opens on the machine the herdr TUI is showing
+        # (local or a remote session) and exits when the quick terminal hides.
+        # Targets herdr-native (its socket, state dir, machine list); set
+        # HERDR_GOTO_APP=herdr to go back to the normal herdr.
+        # Real binary, not the mise shim: it is called on every focus.
+        export HERDR_GOTO_APP=${HERDR_GOTO_APP:-herdr-native}
+        if [[ $HERDR_GOTO_APP == herdr-native ]]; then
+            __hb=$HOME/.local/bin/herdr-native
+        else
+            __hb=$HOME/.local/share/mise/installs/herdr/latest/herdr
+        fi
+        [[ -x $__hb ]] && export HERDR_BIN_PATH=$__hb
+        # ~/.local/bin/herdr-goto is a link to the mise shim (~30ms extra),
+        # so prefer mise's install dir directly.
+        __hg=$HOME/.local/share/mise/installs/github-king0980692-herdr-goto/latest/herdr-goto
+        [[ -x $__hg ]] || __hg=$HOME/.local/bin/herdr-goto
+        [[ -x $__hg ]] || __hg=herdr-goto
+        exec "$__hg" --quick
+    fi
+    if [[ $__qm == pi-bolt ]]; then
+        SSH_CONNECTION=1 exec pi-bolt
+    fi
+    export LG_CONFIG_FILE="$HOME/.config/lazygit/config.yml,$HOME/.config/lazygit/quick-terminal.yml"
+    exec lazygit
+fi
+
 # Locale (required by ble.sh)
 export LANG="${LANG:-en_US.UTF-8}"
 export LC_ALL="${LC_ALL:-en_US.UTF-8}"
@@ -14,14 +69,18 @@ export HISTSIZE=10000
 
 #####################################################################
 
-[[ $- == *i* ]] && source -- ~/.local/share/blesh/ble.sh --attach=none
-
-source ~/.config/bash/ble_config.sh
-source ~/.config/bash/ble_widget.sh
+# NO_BLESH=1 skips ble.sh (e.g. kitty's quick access terminal, for a fast start).
+# Everything later that needs ble.sh is already gated on BLE_VERSION.
+if [[ $- == *i* && -z ${NO_BLESH-} ]]; then
+    source -- ~/.local/share/blesh/ble.sh --attach=none
+    source ~/.config/bash/ble_config.sh
+    source ~/.config/bash/ble_widget.sh
+fi
 
 #########
 # alias #
 #########
+alias v='nvim'
 alias vim='nvim'
 alias vz='vim ~/.config/bash/.bashrc'
 alias vt='vim ~/.config/tmux/tmux.conf'
@@ -42,6 +101,7 @@ alias cc='claude --dangerously-skip-permissions'
 alias pi-bolt="SSH_CONNECTION=1 pi-bolt"
 
 export EDITOR="nvim"
+export VISUAL="nvim"
 
 ta() {
     if ! command -v tmux &> /dev/null; then
@@ -87,15 +147,14 @@ _cached_eval() {
     fi
     [[ -x "$bin_path" ]] || return
     [[ -d "$HOME/.cache/bash_init" ]] || mkdir -p "$HOME/.cache/bash_init"
-    # Regenerate when missing, empty, or older than the binary. Write to a temp
-    # file and only keep a successful, non-empty result: an init that failed
-    # once (e.g. binary mid-upgrade) used to leave a 0-byte cache that was
-    # "newer" than the binary and silently disabled the tool for good.
+    # Regenerate via a temp file and keep it only on success + non-empty output:
+    # a transient failure (e.g. a mise shim erroring) used to leave a 0-byte
+    # cache that was then sourced forever (starship gone, PS1 = \s-\v\$).
     if [[ ! -s "$cache" || "$bin_path" -nt "$cache" ]]; then
-        if "$@" > "$cache.tmp" 2>/dev/null && [[ -s "$cache.tmp" ]]; then
-            mv -f "$cache.tmp" "$cache"
+        if "$@" > "$cache.tmp.$$" 2>/dev/null && [[ -s "$cache.tmp.$$" ]]; then
+            mv -f "$cache.tmp.$$" "$cache"
         else
-            rm -f "$cache.tmp"
+            rm -f "$cache.tmp.$$" "$cache"
             eval "$("$@" 2>/dev/null)"
             return
         fi
@@ -304,8 +363,8 @@ _dotfiles_update_notice() {
     local cache="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles-update/origin-main"
     [[ ${DOTFILES_UPDATE_CHECK:-1} != 0 && -d "$repo/.git" ]] || return 0
     if (( SECONDS >= ${_dotfiles_next_check:-0} )); then
-        interval=${DOTFILES_UPDATE_INTERVAL:-3600}
-        [[ $interval =~ ^[0-9]+$ ]] || interval=3600
+        interval=${DOTFILES_UPDATE_INTERVAL:-86400}
+        [[ $interval =~ ^[0-9]+$ ]] || interval=86400
         interval=$((10#$interval))
         # Clamp the shell-side schedule so a zero TTL does not spawn a process
         # at every prompt; the worker still enforces its own cache TTL.
@@ -428,7 +487,6 @@ done
 unset _gnubin
 
 export PATH="$HOME/.config/leon_scripts/:$PATH"
-export EDITOR='nvim'
 export PAGER='less'
 export LESS='--mouse --wheel-lines=3'
 export PYTHONBREAKPOINT="ipdb.set_trace"

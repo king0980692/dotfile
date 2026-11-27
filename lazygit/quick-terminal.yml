@@ -1,0 +1,5 @@
+# Layered over config.yml for the Ghostty quick terminal (see bash/.bashrc):
+# it opens in $HOME, so show the recent-repos picker instead of offering git init.
+notARepository: skip
+# Esc at the top level (no popup/filter/subview open) quits, closing the window.
+quitOnTopLevelReturn: true

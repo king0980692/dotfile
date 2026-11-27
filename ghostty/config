@@ -46,6 +46,7 @@ auto-update-channel = tip
 window-decoration = auto
 quit-after-last-window-closed = true
 macos-titlebar-style = tabs
+split-divider-color = gray
 
 
 copy-on-select = clipboard
@@ -56,6 +57,12 @@ copy-on-select = clipboard
 keybind = clear
 
 keybind = global:alt+space=toggle_quick_terminal
+# cmd+s (Karabiner rule, Ghostty frontmost) runs leon_scripts/ghostty-quick.sh
+# goto, then sends f19 -> quick terminal opens herdr-goto (see bash/.bashrc).
+# Fallback without Karabiner: super+s below -> M-s in herdr-native -> same
+# script + osascript f19 (slower). f19 is global so it also fires while the
+# quick terminal itself is not focused.
+keybind = global:f19=toggle_quick_terminal
 
 keybind = f11=toggle_fullscreen
 
@@ -77,6 +84,19 @@ keybind = ctrl+shift+k=goto_split:up
 keybind = ctrl+shift+l=goto_split:right
 keybind = ctrl+shift+w=close_surface
 keybind = ctrl+shift+z=toggle_split_zoom
+
+
+keybind = super+shift+v=paste_from_clipboard
+keybind = super+shift+t=new_tab
+keybind = super+shift+five=new_split:right
+keybind = super+shift+apostrophe=new_split:down
+keybind = super+shift+h=goto_split:left
+keybind = super+shift+j=goto_split:down
+keybind = super+shift+k=goto_split:up
+keybind = super+shift+l=goto_split:right
+keybind = super+shift+w=close_surface
+keybind = super+shift+z=toggle_split_zoom
+
 # keybind = sher+shift+alt+h=hide
 
 

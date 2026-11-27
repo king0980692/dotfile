@@ -4,6 +4,42 @@
             "complex_modifications": {
                 "rules": [
                     {
+                        "description": "cmd+s in Ghostty → herdr-goto quick terminal (mode script, then f19 = toggle_quick_terminal; skips Ghostty's super+s=\\x1bs → herdr-native M-s → osascript path)",
+                        "manipulators": [
+                            {
+                                "type": "basic",
+                                "from": {
+                                    "key_code": "s",
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
+                                },
+                                "to": [
+                                    {
+                                        "shell_command": "/bin/sh \"$HOME/.config/leon_scripts/ghostty-quick.sh\" goto"
+                                    },
+                                    {
+                                        "key_code": "vk_none",
+                                        "hold_down_milliseconds": 30
+                                    },
+                                    {
+                                        "key_code": "f19"
+                                    }
+                                ],
+                                "conditions": [
+                                    {
+                                        "type": "frontmost_application_if",
+                                        "bundle_identifiers": [
+                                            "^com\\.mitchellh\\.ghostty$"
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
                         "description": "fn+letter remaps (fn+\\=ctrl+tab, fn+p=ctrl+p, fn+n=ctrl+n, fn+.=ctrl+l)",
                         "manipulators": [
                             {
@@ -125,7 +161,15 @@
                                         ]
                                     }
                                 ],
-                                "type": "basic"
+                                "type": "basic",
+                                "conditions": [
+                                    {
+                                        "type": "frontmost_application_unless",
+                                        "bundle_identifiers": [
+                                            "^com\\\\.philandro\\\\.anydesk$"
+                                        ]
+                                    }
+                                ]
                             }
                         ]
                     },
@@ -151,7 +195,15 @@
                                         ]
                                     }
                                 ],
-                                "type": "basic"
+                                "type": "basic",
+                                "conditions": [
+                                    {
+                                        "type": "frontmost_application_unless",
+                                        "bundle_identifiers": [
+                                            "^com\\\\.philandro\\\\.anydesk$"
+                                        ]
+                                    }
+                                ]
                             }
                         ]
                     },
@@ -307,7 +359,10 @@
                                             "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
-                                            "^org\\.alacritty$"
+                                            "^org\\.alacritty$",
+                                            "^dev\\.herdr\\.app$",
+                                            "^net\\.kovidgoyal\\.kitty$",
+                                            "^com\\\\.philandro\\\\.anydesk$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     }
@@ -338,7 +393,10 @@
                                             "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
-                                            "^org\\.alacritty$"
+                                            "^org\\.alacritty$",
+                                            "^dev\\.herdr\\.app$",
+                                            "^net\\.kovidgoyal\\.kitty$",
+                                            "^com\\\\.philandro\\\\.anydesk$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     }
@@ -369,7 +427,10 @@
                                             "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
-                                            "^org\\.alacritty$"
+                                            "^org\\.alacritty$",
+                                            "^dev\\.herdr\\.app$",
+                                            "^net\\.kovidgoyal\\.kitty$",
+                                            "^com\\\\.philandro\\\\.anydesk$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     }
@@ -407,7 +468,10 @@
                                             "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
-                                            "^org\\.alacritty$"
+                                            "^org\\.alacritty$",
+                                            "^dev\\.herdr\\.app$",
+                                            "^net\\.kovidgoyal\\.kitty$",
+                                            "^com\\\\.philandro\\\\.anydesk$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     }
@@ -438,7 +502,10 @@
                                             "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
-                                            "^org\\.alacritty$"
+                                            "^org\\.alacritty$",
+                                            "^dev\\.herdr\\.app$",
+                                            "^net\\.kovidgoyal\\.kitty$",
+                                            "^com\\\\.philandro\\\\.anydesk$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     }
@@ -469,7 +536,10 @@
                                             "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
-                                            "^org\\.alacritty$"
+                                            "^org\\.alacritty$",
+                                            "^dev\\.herdr\\.app$",
+                                            "^net\\.kovidgoyal\\.kitty$",
+                                            "^com\\\\.philandro\\\\.anydesk$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     }
@@ -500,7 +570,10 @@
                                             "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
-                                            "^org\\.alacritty$"
+                                            "^org\\.alacritty$",
+                                            "^dev\\.herdr\\.app$",
+                                            "^net\\.kovidgoyal\\.kitty$",
+                                            "^com\\\\.philandro\\\\.anydesk$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     }
@@ -536,7 +609,10 @@
                                             "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
-                                            "^org\\.alacritty$"
+                                            "^org\\.alacritty$",
+                                            "^dev\\.herdr\\.app$",
+                                            "^net\\.kovidgoyal\\.kitty$",
+                                            "^com\\\\.philandro\\\\.anydesk$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     }
@@ -572,7 +648,10 @@
                                             "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
-                                            "^org\\.alacritty$"
+                                            "^org\\.alacritty$",
+                                            "^dev\\.herdr\\.app$",
+                                            "^net\\.kovidgoyal\\.kitty$",
+                                            "^com\\\\.philandro\\\\.anydesk$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     }
@@ -603,7 +682,10 @@
                                             "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
-                                            "^org\\.alacritty$"
+                                            "^org\\.alacritty$",
+                                            "^dev\\.herdr\\.app$",
+                                            "^net\\.kovidgoyal\\.kitty$",
+                                            "^com\\\\.philandro\\\\.anydesk$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     }
@@ -669,7 +751,10 @@
                                             "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
-                                            "^org\\.alacritty$"
+                                            "^org\\.alacritty$",
+                                            "^dev\\.herdr\\.app$",
+                                            "^net\\.kovidgoyal\\.kitty$",
+                                            "^com\\\\.philandro\\\\.anydesk$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     }
@@ -705,7 +790,10 @@
                                             "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
-                                            "^org\\.alacritty$"
+                                            "^org\\.alacritty$",
+                                            "^dev\\.herdr\\.app$",
+                                            "^net\\.kovidgoyal\\.kitty$",
+                                            "^com\\\\.philandro\\\\.anydesk$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     }
@@ -741,7 +829,10 @@
                                             "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
-                                            "^org\\.alacritty$"
+                                            "^org\\.alacritty$",
+                                            "^dev\\.herdr\\.app$",
+                                            "^net\\.kovidgoyal\\.kitty$",
+                                            "^com\\\\.philandro\\\\.anydesk$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     }
@@ -777,7 +868,10 @@
                                             "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
-                                            "^org\\.alacritty$"
+                                            "^org\\.alacritty$",
+                                            "^dev\\.herdr\\.app$",
+                                            "^net\\.kovidgoyal\\.kitty$",
+                                            "^com\\\\.philandro\\\\.anydesk$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     }
@@ -808,7 +902,10 @@
                                             "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
-                                            "^org\\.alacritty$"
+                                            "^org\\.alacritty$",
+                                            "^dev\\.herdr\\.app$",
+                                            "^net\\.kovidgoyal\\.kitty$",
+                                            "^com\\\\.philandro\\\\.anydesk$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     }
@@ -846,7 +943,10 @@
                                             "^com\\.superlogical\\.rex$",
                                             "^com\\.googlecode\\.iterm2$",
                                             "^com\\.github\\.wez\\.wezterm$",
-                                            "^org\\.alacritty$"
+                                            "^org\\.alacritty$",
+                                            "^dev\\.herdr\\.app$",
+                                            "^net\\.kovidgoyal\\.kitty$",
+                                            "^com\\\\.philandro\\\\.anydesk$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     }
@@ -1229,7 +1329,7 @@
                         ]
                     },
                     {
-                        "description": "right_cmd+p → option+p in WezTerm/Ghostty/Chrome/Safari/Min/Alacritty",
+                        "description": "right_cmd+p → option+p in WezTerm/Ghostty/Chrome/Safari/Min/Alacritty/Herdr",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -1241,7 +1341,8 @@
                                             "^com\\.google\\.Chrome$",
                                             "^com\\.apple\\.Safari$",
                                             "^com\\.minbrowser\\.min$",
-                                            "^org\\.alacritty$"
+                                            "^org\\.alacritty$",
+                                            "^dev\\.herdr\\.app$"
                                         ],
                                         "type": "frontmost_application_if"
                                     }
@@ -1267,13 +1368,14 @@
                         ]
                     },
                     {
-                        "description": "right_cmd+h/j/k/l → option+h/j/k/l in Alacritty (tmux pane navigation)",
+                        "description": "right_cmd+h/j/k/l → option+h/j/k/l in Alacritty/Herdr (pane navigation)",
                         "manipulators": [
                             {
                                 "conditions": [
                                     {
                                         "bundle_identifiers": [
-                                            "^org\\.alacritty$"
+                                            "^org\\.alacritty$",
+                                            "^dev\\.herdr\\.app$"
                                         ],
                                         "type": "frontmost_application_if"
                                     }
@@ -1300,7 +1402,8 @@
                                 "conditions": [
                                     {
                                         "bundle_identifiers": [
-                                            "^org\\.alacritty$"
+                                            "^org\\.alacritty$",
+                                            "^dev\\.herdr\\.app$"
                                         ],
                                         "type": "frontmost_application_if"
                                     }
@@ -1327,7 +1430,8 @@
                                 "conditions": [
                                     {
                                         "bundle_identifiers": [
-                                            "^org\\.alacritty$"
+                                            "^org\\.alacritty$",
+                                            "^dev\\.herdr\\.app$"
                                         ],
                                         "type": "frontmost_application_if"
                                     }
@@ -1354,7 +1458,8 @@
                                 "conditions": [
                                     {
                                         "bundle_identifiers": [
-                                            "^org\\.alacritty$"
+                                            "^org\\.alacritty$",
+                                            "^dev\\.herdr\\.app$"
                                         ],
                                         "type": "frontmost_application_if"
                                     }

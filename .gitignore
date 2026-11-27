@@ -19,6 +19,14 @@
 !nvim/
 !nvim/**
 
+!helix/
+!helix/config.toml
+!helix/languages.toml
+!helix/README.md
+
+!mitos/
+!mitos/languages.toml
+
 !mise/
 !mise/**
 

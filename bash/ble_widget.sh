@@ -7,6 +7,7 @@ function ble/widget/zi_widget {
   if [[ $PWD != "$oldpwd" ]] && declare -f on_chpwd >/dev/null; then
     on_chpwd
   fi
+  [[ $PWD != "$oldpwd" ]] && ble/function#try _ble_sl_refresh
 
   ble/widget/redraw-line
 
@@ -15,7 +16,7 @@ ble-bind -m 'vi_imap' -f 'M-c' 'zi_widget'
 
 function ble/widget/fff_widget {
   # 1. 建立一個臨時檔案儲存 yazi 退出時的最後路徑
-  local tmpfile
+  local tmpfile oldpwd=$PWD
   tmpfile=$(mktemp -t "yazi-cwd.XXXXXX")
 
   # 2. 執行 yazi，並傳入 --cwd-file 紀錄離開時的路徑
@@ -36,6 +37,7 @@ function ble/widget/fff_widget {
     if [[ $PWD != "$oldpwd" ]] && declare -f on_chpwd >/dev/null; then
       on_chpwd
     fi
+    ble/function#try _ble_sl_refresh
     # fi
   fi
 
@@ -48,10 +50,10 @@ ble-bind -m 'vi_imap' -f 'M-f' 'fff_widget'
 
 
 function ble/widget/mise_install_widget {
-  # 執行指定的 binary
-  ~/.config/leon_scripts/mise-search-fzf.sh
-  # echo '\n\n'
-  # 執行完後，重繪提示符
+  # 傳入目前 shell 的 alias，讓 dashboard 的歷史使用量也能識別 v / lg 等簡寫。
+  # 交還終端給 fzf，避免沿用 ble.sh 的 modifyOtherKeys/kitty 按鍵模式。
+  ble/widget/external-command \
+    'MISE_DASH_ALIASES="$(alias -p)" bash "$HOME/.config/leon_scripts/mise-dashboard.sh"'
   ble/widget/redraw-line
 }
 ble-bind -m 'vi_imap' -f 'M-i' 'mise_install_widget'

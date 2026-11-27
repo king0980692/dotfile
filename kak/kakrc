@@ -27,3 +27,21 @@ evaluate-commands %sh{
 
 source "%val{config}/herdr.kak"
 source "%val{config}/pickers.kak"
+
+# Rust only: keep the existing editor integrations and add the external LSP client.
+evaluate-commands %sh{kak-lsp}
+hook global BufSetOption filetype=rust %{
+    set-option buffer lsp_servers %{
+        [rust-analyzer]
+        root_globs = ["Cargo.toml"]
+        command = "env"
+        args = ["-u", "RUSTUP_TOOLCHAIN", "ZIG=/Users/lychang/.local/share/mise/installs/zig/0.16.0/bin/zig", "rust-analyzer"]
+        settings_section = "rust-analyzer"
+        [rust-analyzer.settings.rust-analyzer]
+        check.command = "check"
+        cargo.extraArgs = ["--locked"]
+    }
+}
+hook global WinSetOption filetype=rust %{ lsp-enable-window }
+map global goto d '<esc>:lsp-definition<ret>' -docstring 'LSP definition'
+map global user l ':enter-user-mode lsp<ret>' -docstring 'LSP commands'
