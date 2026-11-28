@@ -14,7 +14,7 @@
 #
 # Linked or copied (one copy per machine, owned by agents/):
 #   ~/.claude/{CLAUDE.md,RTK.md,statusline-command.sh}
-#   ~/.pi/agent/{settings.json,keybindings.json,extensions/claude-style-status.ts}
+#   ~/.pi/agent/{settings.json,keybindings.json,extensions/{claude-style-status,background-task-ui}.ts}
 #   ~/.claude/skills/<s>, ~/.codex/skills/<s>   for each agents/skills/<s>
 #
 # Merged (the agent and other tools write machine-specific data there too):
@@ -181,7 +181,7 @@ echo "Codex"
 merge codex "$here/codex/config.base.toml" "$HOME/.codex/config.toml"
 
 echo "pi"
-for f in settings.json keybindings.json extensions/claude-style-status.ts; do
+for f in settings.json keybindings.json extensions/claude-style-status.ts extensions/background-task-ui.ts; do
 	link "$here/pi/$f" "$HOME/.pi/agent/$f"
 done
 

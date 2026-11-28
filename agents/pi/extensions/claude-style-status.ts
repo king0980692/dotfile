@@ -3,8 +3,8 @@ import { mkdir, readFile, rename, stat, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
-import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
-import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
+import { CustomEditor, type ExtensionAPI, type ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { Key, matchesKey, truncateToWidth, visibleWidth, type TuiMouseEvent } from "@earendil-works/pi-tui";
 
 const exec = promisify(execFile);
 type Window = { used_percent: number; limit_window_seconds: number; reset_at: number };
@@ -68,6 +68,53 @@ export default function (pi: ExtensionAPI) {
 	let provider = "";
 	let pendingRefresh = false;
 	let openCodeUsage: ReturnType<typeof parseOpenCodeGo> | undefined;
+	let request: { previousLeaf: string | null; interrupted: boolean; progressed: boolean } | undefined;
+	let rewindEntry: { target: string; leaf: string | null } | undefined;
+
+	pi.on("before_agent_start", (event, ctx) => {
+		rewindEntry = undefined;
+		const messageType = "messageType" in event ? event.messageType : undefined;
+		request = ctx.mode === "tui" && messageType !== "custom" && !event.images?.length
+			? { previousLeaf: ctx.sessionManager.getLeafId(), interrupted: false, progressed: false }
+			: undefined;
+	});
+	pi.on("message_update", (event) => {
+		if (request && event.message.role === "assistant" && event.message.content.some(part =>
+			part.type === "toolCall" || (part.type === "text" && part.text.trim()))) request.progressed = true;
+	});
+	pi.on("tool_execution_start", () => { if (request) request.progressed = true; });
+	pi.on("agent_settled", (_event, ctx) => {
+		const finished = request;
+		request = undefined;
+		if (!finished?.interrupted || finished.progressed || ctx.hasPendingMessages() || ctx.ui.getEditorText()) return;
+		const branch = ctx.sessionManager.getBranch();
+		const previous = finished.previousLeaf === null ? -1 : branch.findIndex(entry => entry.id === finished.previousLeaf);
+		if (finished.previousLeaf !== null && previous < 0) return;
+		const messages = branch.slice(previous + 1).filter(entry => entry.type === "message");
+		const user = messages.find(entry => entry.message.role === "user");
+		if (!user || messages.some(entry => {
+			if (entry === user) return false;
+			const message = entry.message;
+			return message.role !== "assistant" || message.content.some(part => part.type === "toolCall" || (part.type === "text" && part.text.trim()));
+		})) return;
+		const rewind = { target: user.id, leaf: ctx.sessionManager.getLeafId() };
+		rewindEntry = rewind;
+		setImmediate(() => {
+			if (rewindEntry !== rewind || ctx.sessionManager.getLeafId() !== rewind.leaf || !ctx.isIdle() || ctx.ui.getEditorText()) return;
+			pi.sendUserMessage("/restore-interrupted-draft", { expandPromptTemplates: true });
+		});
+	});
+	pi.registerCommand("restore-interrupted-draft", {
+		description: "Restore a prompt cancelled before the assistant replied",
+		async handler(_args, ctx) {
+			const rewind = rewindEntry;
+			rewindEntry = undefined;
+			if (!rewind || ctx.sessionManager.getLeafId() !== rewind.leaf || ctx.ui.getEditorText() || !ctx.isIdle()) return;
+			// Navigation to the current leaf is a no-op. Keep a marker on the cancelled branch if only the user entry was saved.
+			if (rewind.leaf === rewind.target) pi.appendEntry("interrupted-draft", { target: rewind.target });
+			await ctx.navigateTree(rewind.target, { summarize: false });
+		},
+	});
 
 	function redraw(ctx: ExtensionContext) {
 		if (!suffix || ctx.mode !== "tui") return;
@@ -176,24 +223,78 @@ export default function (pi: ExtensionAPI) {
 	pi.on("session_start", (_event, ctx) => {
 		if (ctx.mode !== "tui") return;
 		generation++;
-		ctx.ui.setFooter((_tui, _theme, footerData) => ({
+		let jobsAvailable = false;
+		let jobsSelected = false;
+		ctx.ui.setFooter((tui, theme, footerData) => {
+			let shellStart = 0;
+			let shellEnd = 0;
+			return {
+				render(width) {
+					const statuses = footerData.getExtensionStatuses();
+					const status = statuses.get("plan-mode");
+					const planning = status === "plan active" || status === "plan ready";
+					const label = planning ? "⏸ plan mode on" : "⏵⏵ auto mode on";
+					const color = planning ? "\x1b[38;2;187;120;255m" : "\x1b[38;2;255;210;75m";
+					const mode = `${color} ${label}\x1b[0m`;
+					const shells = statuses.get("background-shells");
+					jobsAvailable = Boolean(shells);
+					if (!jobsAvailable) jobsSelected = false;
+					shellStart = shellEnd = 0;
+					if (!shells) return [truncateToWidth(mode + theme.fg("dim", " (shift+tab to cycle)"), width)];
 
-			render: (width) => {
-				const status = footerData.getExtensionStatuses().get("plan-mode");
-				const planning = status === "plan active" || status === "plan ready";
-				const label = planning ? "⏸ plan mode on" : "⏵⏵ auto mode on";
-				const color = planning ? "\x1b[38;2;187;120;255m" : "\x1b[38;2;255;210;75m";
-				return [truncateToWidth(`${color} ${label}\x1b[0m\x1b[90m (shift+tab to cycle)\x1b[0m`, width)];
-			},
-			invalidate() {},
-		}));
+					const modeWithSeparator = mode + theme.fg("dim", "  ·  ");
+					const fullButton = jobsSelected ? `${shells} (↓ / Enter)` : shells;
+					const space = width - visibleWidth(modeWithSeparator);
+					const button = visibleWidth(fullButton) <= space ? fullButton : shells;
+					if (visibleWidth(button) > space) return [truncateToWidth(mode, width)];
+					shellStart = visibleWidth(modeWithSeparator);
+					shellEnd = shellStart + visibleWidth(button);
+					const hint = "  (shift+tab to cycle mode)";
+					const styledButton = jobsSelected ? theme.style(button, { fg: "accent", bg: "selectedBg", bold: true }) : theme.fg("accent", button);
+					const line = modeWithSeparator + styledButton;
+					return [shellEnd + visibleWidth(hint) <= width ? line + theme.fg("dim", hint) : line];
+				},
+				invalidate() {},
+				handleMouse(event: TuiMouseEvent) {
+					if (event.type !== "press" || event.button !== "left" || event.y !== 0 || event.x < shellStart || event.x >= shellEnd) return;
+					jobsSelected = false;
+					pi.events.emit("pi-background:open-jobs", undefined);
+					return { handled: true };
+				},
+			};
+		});
 		const current = generation;
 		setImmediate(() => {
 			if (current !== generation) return;
 			const previous = ctx.ui.getEditorComponent();
-			if (!previous) return;
 			ctx.ui.setEditorComponent((tui, theme, keybindings) => {
-				const editor = previous(tui, theme, keybindings);
+				const editor = previous?.(tui, theme, keybindings) ?? new CustomEditor(tui, theme, keybindings, { embedWorkingStatus: true });
+				const handleInput = editor.handleInput?.bind(editor);
+				editor.handleInput = (data) => {
+					if (jobsSelected) {
+						jobsSelected = false;
+						tui.requestRender();
+						if (matchesKey(data, Key.down) || keybindings.matches(data, "tui.input.submit")) {
+							pi.events.emit("pi-background:open-jobs", undefined);
+							return;
+						}
+						if (matchesKey(data, Key.up) || matchesKey(data, Key.escape)) return;
+					}
+					const downToFooter = jobsAvailable && matchesKey(data, Key.down);
+					if (downToFooter && editor.getText() === "") {
+						jobsSelected = true;
+						tui.requestRender();
+						return;
+					}
+					if (request && !request.progressed && !ctx.isIdle() && !ctx.hasPendingMessages() && !editor.getText() &&
+						keybindings.matches(data, "app.interrupt") &&
+						!(editor as { isShowingAutocomplete?(): boolean }).isShowingAutocomplete?.()) request.interrupted = true;
+					handleInput?.(data);
+					if (downToFooter && editor.getText() === "") {
+						jobsSelected = true;
+						tui.requestRender();
+					}
+				};
 				for (const entry of ctx.sessionManager.getBranch()) {
 					if (entry.type !== "message" || entry.message.role !== "user") continue;
 					const content = entry.message.content;
@@ -235,6 +336,8 @@ export default function (pi: ExtensionAPI) {
 		void refresh(ctx);
 	});
 	pi.on("session_shutdown", () => {
+		request = undefined;
+		rewindEntry = undefined;
 		generation++;
 		suffix = "";
 		if (timer) clearInterval(timer);

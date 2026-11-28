@@ -4,7 +4,7 @@
   "defaultModel": "gpt-6.1-sol",
   "packages": [
     "npm:pi-polish",
-    "npm:pi-background",
+    { "source": "npm:pi-background", "extensions": [] },
     "npm:pi-checkpoints",
     "npm:pi-feedback",
     "npm:pi-model-pick",
